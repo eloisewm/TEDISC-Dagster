@@ -1,0 +1,10 @@
+[project]
+name = "imas-ore-dagster"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "dagster>=1.12.22",
+    "dagster-webserver>=1.12.22",
+]
