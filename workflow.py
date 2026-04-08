@@ -3,7 +3,7 @@ from io import StringIO
 
 import httpx
 import pyodbc
-from dagster import Definitions, asset
+from dagster import AutomationCondition, Definitions, asset
 
 
 @asset
@@ -21,7 +21,7 @@ def wfs_inventory() -> str:
     return res.text
 
 
-@asset
+@asset(automation_condition=AutomationCondition.eager())
 def save_features(wfs_inventory: str) -> int:
     data_str = StringIO(wfs_inventory)
     # I think MSSQL has a bulk-insert method directly from CSV!  You might have issues with the filepath and the server though.
