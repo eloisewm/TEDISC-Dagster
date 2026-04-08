@@ -7,4 +7,5 @@ requires-python = ">=3.12"
 dependencies = [
     "dagster>=1.12.22",
     "dagster-webserver>=1.12.22",
+    "httpx>=0.28.1",
 ]
