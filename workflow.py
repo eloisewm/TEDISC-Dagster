@@ -33,11 +33,11 @@ def save_features(wfs_inventory: str) -> int:
 
     # print(reader.fieldnames)
     reader = csv.reader(wfs_inventory)
-    cnxn = pyodbc.connect("Driver={ODBC Driver 18 for SQL Server};Server=imasoredev-db.its.utas.edu.au;Database=IMASORE;UID=username;PWD=password")
-    data = list(reader)
-    data = data[1:]             # skip header row
-    with cnxn.cursor() as cursor:
-        cursor.executemany('INSERT INTO ore_inventory (FID, species_group, common_name, scientific_name, source_data_repo, data_subset, data_type, observation_count, location, years, data_owner, data_owner_affiliation, access_url, publications, notes) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', data)
+    # cnxn = pyodbc.connect("Driver={ODBC Driver 18 for SQL Server};Server=imasoredev-db.its.utas.edu.au;Database=IMASORE;UID=username;PWD=password")
+    # data = list(reader)
+    # data = data[1:]             # skip header row
+    # with cnxn.cursor() as cursor:
+    #     cursor.executemany('INSERT INTO ore_inventory (FID, species_group, common_name, scientific_name, source_data_repo, data_subset, data_type, observation_count, location, years, data_owner, data_owner_affiliation, access_url, publications, notes) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', data)
 
     # Just return an integer, for funsies:
     return len(list(reader))
