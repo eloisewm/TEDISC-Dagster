@@ -2,6 +2,7 @@ import csv
 from io import StringIO
 
 import httpx
+import pyodbc
 from dagster import Definitions, asset
 
 
@@ -23,13 +24,23 @@ def wfs_inventory() -> str:
 @asset
 def save_features(wfs_inventory: str) -> int:
     data_str = StringIO(wfs_inventory)
-    reader = csv.DictReader(data_str)
+    # I think MSSQL has a bulk-insert method directly from CSV!  You might have issues with the filepath and the server though.
+    # reader = csv.DictReader(data_str)
+
+    # I like using DictReader most of the time, but for simplicity
+    # I'll just use a regular reader so we can bulk-load it (assuming
+    # the db table has identical structure to the csv):
+
     # print(reader.fieldnames)
-    #
+    reader = csv.reader(wfs_inventory)
+    cnxn = pyodbc.connect("Driver={ODBC Driver 18 for SQL Server};Server=imasoredev-db.its.utas.edu.au;Database=IMASORE;UID=username;PWD=password")
+    data = list(reader)
+    data = data[1:]             # skip header row
+    with cnxn.cursor() as cursor:
+        cursor.executemany('INSERT INTO ore_inventory (FID, species_group, common_name, scientific_name, source_data_repo, data_subset, data_type, observation_count, location, years, data_owner, data_owner_affiliation, access_url, publications, notes) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)', data)
+
+    # Just return an integer, for funsies:
     return len(list(reader))
 
-@asset
-def hello_world():
-    return "Hello, Dagster"
 
-defs = Definitions(assets=[hello_world, wfs_inventory, save_features])
+defs = Definitions(assets=[wfs_inventory, save_features])
