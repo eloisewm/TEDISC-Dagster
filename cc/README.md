@@ -30,17 +30,12 @@ docker compose exec dagster_webserver dagster-authkit list-permissions
 
   dagster-authkit provides 4 roles with increasing privileges:
 
-  ┌──────────┬─────────────────────────────────────────────────────────────────┐
-  │   Role   │                           Permissions                           │
-  ├──────────┼─────────────────────────────────────────────────────────────────┤
-  │ Viewer   │ Read-only access to the UI (view runs, assets, logs)            │
-  ├──────────┼─────────────────────────────────────────────────────────────────┤
-  │ Launcher │ Viewer + can launch/terminate runs and trigger materializations │
-  ├──────────┼─────────────────────────────────────────────────────────────────┤
-  │ Editor   │ Launcher + can modify schedules, sensors, and configuration     │
-  ├──────────┼─────────────────────────────────────────────────────────────────┤
-  │ Admin    │ Full access including user management                           │
-  └──────────┴─────────────────────────────────────────────────────────────────┘
+| Role     | Permissions                                                      |
+| -------- | ---------------------------------------------------------------- |
+| Viewer   | Read-only access to the UI (view runs, assets, logs)             |
+| Launcher | Viewer + can launch/terminate runs and trigger materializations  |
+| Editor   | Launcher + can modify schedules, sensors, and configuration      |
+| Admin    | Full access including user management                            |
 
   Permissions are enforced by intercepting GraphQL mutations — unauthorized actions are blocked before
   they reach Dagster.
