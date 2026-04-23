@@ -77,6 +77,9 @@ def validate_structure(context: AssetExecutionContext, raw_obs: pd.DataFrame) ->
         context.log.info("No additional columns — file matches expected schema exactly.")
 
     return     
+
+
+  # TEST
         
 
 
