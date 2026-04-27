@@ -11,5 +11,7 @@ EXPECTED_BLA_COLUMNS = [
     "wind_speed_category", "wind_dir_category", "disturbance_people_count",
     "disturbance_dogs_off_lead_count", "disturbance_dogs_on_lead_count",
     "disturbance_watercraft_at_anchor_count", "disturbance_watercraft_moving_count",
-    "disturbance_vehicles_count", "disturbance_other_count",
+    "disturbance_vehicles_count", "disturbance_other_count"
 ]
+
+#   "survey_id",
