@@ -10,6 +10,7 @@ dependencies = [
     "httpx>=0.28.1",
     "pandas>=3.0.2",
     "pyodbc>=5.3.0",
+    "pyinaturalist",
 ]
 
 [build-system]
