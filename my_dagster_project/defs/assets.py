@@ -1,14 +1,15 @@
 
 from dagster import asset, AssetExecutionContext, Failure
 import pandas as pd
-from .constants import EXPECTED_BLA_COLUMNS, BLA_PROGRAM_NAMES, BLA_SURVEY_TYPES, BLA_EXPECTED_COMMON_NAMES, BLA_EXPECTED_SCIENTIFIC_NAMES
+from . import constants
 
 import os
 from pathlib import Path
 from datetime import datetime, date
+from pyinaturalist import get_observations
 
 
-###### BirdLife Australia QAQC ##########
+###### BirdLife Australia QAQC ########## 
 
 filepath = "/home/eloisewm/Datasets/BirdLife Aus/bla_output_csiro_290525.csv"
 
@@ -51,7 +52,7 @@ def validated_structure_bla(context: AssetExecutionContext, raw_obs_bla: pd.Data
 
     df = raw_obs_bla
 
-    expected = set(EXPECTED_BLA_COLUMNS)
+    expected = set(constants.EXPECTED_BLA_COLUMNS)
     actual = set(df.columns)
     missing_cols = expected - actual
     additional_cols = actual - expected
@@ -98,13 +99,13 @@ def flagged_data_bla(context: AssetExecutionContext, deduplicated_bla: pd.DataFr
     # Important for AA and PA datatypes
     df["FLAG_SURVEY_ID_BLANK"] = df["survey_id"].isna()
     df["FLAG_SURVEY_TYPE_BLANK"] = df["survey_type"].isna()
-    df["FLAG_SURVEY_TYPE_UNEXPECTED"] = df["survey_type"].notna() & ~df["survey_type"].isin(BLA_SURVEY_TYPES)
+    df["FLAG_SURVEY_TYPE_UNEXPECTED"] = df["survey_type"].notna() & ~df["survey_type"].isin(constants.BLA_SURVEY_TYPES)
 
 
     # PROGRAM
     # Important for AA and PA datatypes
     df["FLAG_PROGRAM_NAME_BLANK"] = df["program_name"].isna()
-    df["FLAG_PROGRAM_NAME_UNEXPECTED"] = df["program_name"].notna() & ~df["program_name"].isin(BLA_PROGRAM_NAMES)
+    df["FLAG_PROGRAM_NAME_UNEXPECTED"] = df["program_name"].notna() & ~df["program_name"].isin(constants.BLA_PROGRAM_NAMES)
 
     # SPATIAL
     # Important for all datatypes 
@@ -124,9 +125,9 @@ def flagged_data_bla(context: AssetExecutionContext, deduplicated_bla: pd.DataFr
     # Important for all datatypes
     # I will primarily refer to the scientific names during QAQC, but worth picking up issues with common names also
     df["FLAG_COMMON_NAME_BLANK"] = df["common_name"].isna()
-    df["FLAG_COMMON_NAME_UNEXPECTED"] = df["common_name"].notna() & ~df["common_name"].isin(BLA_EXPECTED_COMMON_NAMES)
+    df["FLAG_COMMON_NAME_UNEXPECTED"] = df["common_name"].notna() & ~df["common_name"].isin(constants.BLA_EXPECTED_COMMON_NAMES)
     df["FLAG_SCIENTIFIC_NAME_BLANK"] = df["scientific_name"].isna()
-    df["FLAG_SCIENTIFIC_NAME_UNEXPECTED"] = df["scientific_name"].notna() & ~df["scientific_name"].isin(BLA_EXPECTED_SCIENTIFIC_NAMES)
+    df["FLAG_SCIENTIFIC_NAME_UNEXPECTED"] = df["scientific_name"].notna() & ~df["scientific_name"].isin(constants.BLA_EXPECTED_SCIENTIFIC_NAMES)
 
     # COUNT 
     # Important for AA and PA data types (might also be used for PO? Keith doesn't value counts when PO...)
@@ -189,47 +190,66 @@ def flagged_data_bla(context: AssetExecutionContext, deduplicated_bla: pd.DataFr
     return df
   
 
-# @asset(group_name = "iNaturalist")
-# def raw_obs_inat(context: AssetExecutionContext) -> pd.DataFrame:
-#     taxon_name = "Calidris ferruginea"
 
-#     count_response = get_observations(
-#         taxon_name=taxon_name,
-#         quality_grade="research",
-#         count_only=True
-#     )
-#     total = count_response["total_results"]
-#     context.log.info(f"Total observations to download: {total}")
+# Currently I run out of memory before this asset can execute
+# Will need to either:
+#   1) Save each species to disk as I go through them in the loop
+#   2) Write an asset for each individual species 
+# Decision will impact how I write future assets - must decide before moving on
+@asset(group_name="iNaturalist")
+def raw_obs_inat(context: AssetExecutionContext) -> pd.DataFrame:
 
-#     all_observations = []
-#     page = 1
-#     per_page = 200
+    all_observations = []
 
-#     while True:
-#         response = get_observations(
-#             taxon_name=taxon_name,
-#             quality_grade="research",
-#             per_page=per_page,
-#             page=page,
-#         )
+    for taxon_name in constants.ALL_TARGET_SPECIES_SCIENTIFIC:
 
-#         results = response["results"]
+        # Count the number of obs that we are about to request
+        count_response = get_observations(
+            taxon_name=taxon_name,
+            quality_grade="research",
+            count_only=True, 
+            nelat=0,     
+            swlat=-90,    
+            nelng=180,    
+            swlng=-180,
+        )
+        total = count_response["total_results"]
+        context.log.info(f"[{taxon_name}] Total observations to download: {total}")
 
-#         if not results:
-#             break
+        page = 1        # Will iterate in the loop over all possible pages
+        per_page = 200  # Max we can do
 
-#         all_observations.extend(results)
-#         context.log.info(f"Downloaded page {page} — {len(all_observations)}/{total} records")
-#         page += 1
+        while True:
+            # API pull for all reasearch grade observations in the southern hemiphere
+            response = get_observations(
+                taxon_name=taxon_name,
+                quality_grade="research",
+                per_page=per_page,
+                page=page,
+                nelat=0,      
+                swlat=-90,    
+                nelng=180,   
+                swlng=-180,
+            )
 
-#     df = pd.json_normalize(all_observations)
+            results = response["results"]
+            if not results:
+                break
 
-#     context.add_output_metadata({
-#         "row_count": len(df),
-#         "column_count": len(df.columns),
-#         "taxon": taxon_name,
-#         "quality_grade": "research",
-#     })
+            all_observations.extend(results)
+            context.log.info(f"[{taxon_name}] Page {page} - {len(all_observations)} total records so far")
+            page += 1
+
+    df = pd.json_normalize(all_observations)
+
+    context.add_output_metadata({
+        "row_count": len(df),
+        "column_count": len(df.columns),
+        "species_count": len(constants.ALL_TARGET_SPECIES_SCIENTIFIC),
+        "quality_grade": "research",
+    })
+
+    return df
     
 
 
