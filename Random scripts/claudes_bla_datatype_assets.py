@@ -7,7 +7,7 @@ import pandas as pd
 # ─────────────────────────────────────────────────────────────────────────────
 
 # Programs that are always PO regardless of survey type or other fields.
-# Membership here is based on program DESIGN ambiguity — specifically that
+# Membership here is based on program DESIGN ambiguity - specifically that
 # counts in these programs may not represent total birds present at a site,
 # making counts uninterpretable as abundance indices.
 #
@@ -50,7 +50,7 @@ FORCE_ALL_SPECIES_FALSE = {
     "WA Black Cockies",
 }
 
-# Shorebird target species — used to set is_shorebird flag and for shorebird-only padding.
+# Shorebird target species - used to set is_shorebird flag and for shorebird-only padding.
 # Includes the alternate spelling present in the source data.
 SHOREBIRD_TARGET_SPECIES = {
     "Curlew Sandpiper",
@@ -84,7 +84,7 @@ SHOREBIRD_SPECIES_FOR_PADDING = [
     "Lesser Sand Plover",
 ]
 
-# Ambiguous species groups — if any member is observed in a survey, all members
+# Ambiguous species groups - if any member is observed in a survey, all members
 # are excluded from absence inference to avoid spurious absences.
 AMBIGUOUS_SPECIES_GROUPS = [
     {"Shy Albatross", "White-capped Albatross", "Shy/White-capped Albatross spp"},
@@ -115,22 +115,22 @@ def _assign_data_type(row: pd.Series) -> str:
     """
     Assigns a data_type of AA, PA, PO, or PO_FALLBACK to a single observation.
 
-    PO_FALLBACK is returned for any combination not explicitly handled — these
+    PO_FALLBACK is returned for any combination not explicitly handled - these
     are logged as warnings in typed_bla and should be investigated before use
     in modelling.
 
     Evaluation order:
-    1. PO_PROGRAMS — always PO (program design makes counts uninterpretable)
-    2. ALWAYS_PO_SURVEY_TYPES — always PO (incidental search, bird list)
-    3. Shorebirds program — shorebird-specific logic using all_shorebirds_visible_counted
-    4. Swift Parrot Search — single-target; AA if count given, PO otherwise
-    5. All remaining programs with systematic survey types — standard logic
-    6. PO_FALLBACK — unrecognised survey type, flagged for review
+    1. PO_PROGRAMS - always PO (program design makes counts uninterpretable)
+    2. ALWAYS_PO_SURVEY_TYPES - always PO (incidental search, bird list)
+    3. Shorebirds program - shorebird-specific logic using all_shorebirds_visible_counted
+    4. Swift Parrot Search - single-target; AA if count given, PO otherwise
+    5. All remaining programs with systematic survey types - standard logic
+    6. PO_FALLBACK - unrecognised survey type, flagged for review
 
     FORCE_ALL_SPECIES_FALSE: Swift Parrot Search and WA Black Cockies have
     all_species_recorded treated as FALSE regardless of observer input. WA Black
     Cockies reaches step 5 with all_species_recorded=FALSE, so it will only
-    reach AA (count given) or PO (no count) — never PA.
+    reach AA (count given) or PO (no count) - never PA.
     """
 
     program = row.get("program_name", "")
@@ -138,7 +138,7 @@ def _assign_data_type(row: pd.Series) -> str:
     count_made = not pd.isna(row.get("individual_count"))
     is_shorebird = row.get("is_shorebird", False)
 
-    # Resolve all_species_recorded — forced FALSE for single-target programs
+    # Resolve all_species_recorded - forced FALSE for single-target programs
     if program in FORCE_ALL_SPECIES_FALSE:
         all_species = False
     else:
@@ -199,7 +199,7 @@ def _assign_data_type(row: pd.Series) -> str:
     # ── 6. Fallback ───────────────────────────────────────────────────────────
     # Reached when survey_type is not in SYSTEMATIC_SURVEY_TYPES or
     # ALWAYS_PO_SURVEY_TYPES and the program is not otherwise handled above.
-    # Indicates an unrecognised survey type — logged as warning in typed_bla.
+    # Indicates an unrecognised survey type - logged as warning in typed_bla.
     return "PO_FALLBACK"
 
 
@@ -225,7 +225,7 @@ def typed_bla(context: AssetExecutionContext, flagged_data_bla: pd.DataFrame) ->
     for full logic documentation.
 
     PO_FALLBACK records are retained in the output but logged as warnings.
-    They should be investigated before use in modelling — they indicate a
+    They should be investigated before use in modelling - they indicate a
     program/survey_type combination not covered by explicit rules.
     """
 
@@ -249,7 +249,7 @@ def typed_bla(context: AssetExecutionContext, flagged_data_bla: pd.DataFrame) ->
     if n_error:
         context.log.warning(
             f"Removing {n_error} Far Eastern Curlew record(s) assigned to "
-            f"Swift Parrot Search (data entry error — confirmed in project documentation)"
+            f"Swift Parrot Search (data entry error - confirmed in project documentation)"
         )
         df = df[~error_mask].copy()
 
@@ -265,6 +265,12 @@ def typed_bla(context: AssetExecutionContext, flagged_data_bla: pd.DataFrame) ->
 
     # ── Create is_shorebird flag ──────────────────────────────────────────────
     df["is_shorebird"] = df["common_name"].isin(SHOREBIRD_TARGET_SPECIES)
+
+    # ── Mark all original records as non-absences ────────────────────────────
+    # Absence records added in padded_bla will have is_absence=True.
+    # Setting this here ensures the column exists and is typed correctly
+    # before padding, and makes the distinction explicit throughout the pipeline.
+    df["is_absence"] = False
 
     # ── Assign data types ─────────────────────────────────────────────────────
     df["data_type"] = df.apply(_assign_data_type, axis=1)
@@ -287,7 +293,7 @@ def typed_bla(context: AssetExecutionContext, flagged_data_bla: pd.DataFrame) ->
             f"Affected program/survey_type combinations: {affected}"
         )
     else:
-        context.log.info("No PO_FALLBACK records — all combinations handled by explicit rules.")
+        context.log.info("No PO_FALLBACK records - all combinations handled by explicit rules.")
 
     return df
 
@@ -317,8 +323,13 @@ def _create_absence_records(
     - AA otherwise
     Note: this can produce asymmetric cases where a survey has AA presences
     and PA absences (one species counted, another only detected without count).
-    Carried forward from the original R code — verify with project lead if
+    Carried forward from the original R code - verify with project lead if
     this asymmetry is acceptable for downstream modelling.
+
+    Absence records have:
+    - individual_count = NaN (no count; bird was not observed)
+    - is_absence = True
+    Original observation records have is_absence = False (set in typed_bla).
     """
 
     survey_rows = survey_data[survey_data["survey_id"] == survey_id_val]
@@ -354,7 +365,8 @@ def _create_absence_records(
         row["taxon_id"] = taxa.get("taxon_id")
         row["common_name"] = sp
         row["scientific_name"] = taxa.get("scientific_name", "")
-        row["individual_count"] = "IA"  # Inferred Absence
+        row["individual_count"] = None  # NaN - bird not observed, no count possible
+        row["is_absence"] = True
         row["data_type"] = absence_data_type
         row["vetting_id"] = None
         row["vetting_status"] = None
@@ -371,27 +383,31 @@ def _create_absence_records(
 @asset(group_name="BirdLife_Australia")
 def padded_bla(context: AssetExecutionContext, typed_bla: pd.DataFrame) -> pd.DataFrame:
     """
-    Pads the dataset with inferred absence (IA) records for target species
+    Pads the dataset with inferred absence records for target species
     not observed during qualifying surveys.
 
     Two padding conditions:
 
-    Condition 1 — All species padding:
+    Condition 1 - All species padding:
         Surveys where:
         - all_species_recorded = TRUE
         - survey_type is in SYSTEMATIC_SURVEY_TYPES
         - program is not in PO_PROGRAMS
         Absence records created for ALL target species not observed.
 
-    Condition 2 — Shorebirds only padding:
+    Condition 2 - Shorebirds only padding:
         Surveys where:
         - program = "Shorebirds"
         - all_shorebirds_visible_counted = TRUE
         - all_species_recorded = FALSE (prevents overlap with condition 1)
         Absence records created for SHOREBIRD target species only.
 
-    PO_FALLBACK records are excluded from padding — unrecognised survey types
+    PO_FALLBACK records are excluded from padding - unrecognised survey types
     cannot be assumed to represent complete checklists.
+
+    Absence records are distinguished from observations via 'is_absence' (bool)
+    rather than a sentinel value in individual_count. individual_count remains
+    NaN for absence records, preserving numeric typing throughout.
 
     A 'padding_condition' column is added to all records for traceability:
     - None: original observation record
@@ -473,7 +489,7 @@ def padded_bla(context: AssetExecutionContext, typed_bla: pd.DataFrame) -> pd.Da
         missing = expected - covered
         if missing:
             context.log.warning(
-                f"Survey {survey_id_val}: absence padding incomplete — "
+                f"Survey {survey_id_val}: absence padding incomplete - "
                 f"species not covered: {missing}. "
                 f"Check for name mismatches in SPECIES_DICT."
             )
