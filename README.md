@@ -1,10 +1,8 @@
-# TEDISC-Dagster
-
-## First Time Setup
+## First Time Setup for a Local Instance
 ### 1) Install WSL
-It is reccomended to install on the WSL (Windows Subsystem for Linux) so that our environment mimics the server's Linux environment. 
+It is recommended to run the Dagster instance on the WSL (Windows Subsystem for Linux) so that our local environment mimics the server's Linux environment (server deployment still to come). 
 
-Open a Windows PowerShell terminal as an admin and run 
+If you don't have it installed, open a Windows PowerShell terminal and run 
 ```bash
 wsl --install
 ```
