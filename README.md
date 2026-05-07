@@ -180,7 +180,10 @@ TEDISC-Dagster/
 │   ├── __init__.py
 │   ├── definitions.py
 │   └── defs/
-│       ├── assets.py
+│       ├── assets/
+│       │   ├──  __init__.py
+│       │   ├──  BirdLife.py
+│       │   └──  iNaturalist.py
 │       ├── constants.py   
 │       ├── jobs.py
 │       ├── resources.py
