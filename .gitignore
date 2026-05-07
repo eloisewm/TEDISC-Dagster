@@ -1,4 +1,4 @@
-/.tmp_*
-/__pycache__/
-/*.egg-info/
-/.venv/
+.tmp_*
+__pycache__/
+*.egg-info/
+.venv/

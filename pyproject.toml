@@ -1,7 +1,7 @@
 [project]
-name = "my-dagster-playground"
+name = "tedisc-dagster"
 version = "0.1.0"
-description = "Add your description here"
+description = "Dagster deployment for the TEDISC project"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -21,4 +21,4 @@ build-backend = "setuptools.build_meta"
 where = ["."]
 
 [tool.dagster]
-module_name = "my_dagster_project"
+module_name = "tedisc_dagster"
