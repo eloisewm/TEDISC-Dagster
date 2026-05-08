@@ -1,3 +1,20 @@
+## Project Summary
+The ORE-TEDISC (Offshore Renenewable Energy Trusted Environmental Data and Information Supply Chain) project aims to automate the processes currently being carried out manually under the NESP 4.7 project.
+
+In brief, NESP 4.7 is looking to estimate the impact of newly proposed offshore windfarms in the Gippsland area on a set of priority species. This process involves a substantial effort in discovering and collating data, getting it model-ready, and feeding it through a system of interconnected models. 
+
+Through TEDSIC, we hope to build a reproducible, auditable data supply chain; reducing manual effort, improving traceability, and making the workflow repeatable as new data becomes available or new wind farm proposals emerge.
+
+Below is a high level overview of the NESP 4.7 workflow, and where the TEDISC project is tagreting for automation:
+
+![4.7 Workflow](docs/Entire%204.7-TEDISC%20Workflow.png)
+
+The current focus is automating the retrieval and QAQC of species occurrence data for input into the species distribution models. The plan for the approach is documented here:
+
+![Model Ready Data Workflow](docs/Model%20Ready%20Data%20Workflow.png)
+
+TEDISC will be built on Dagster, an open-source data orchestration platform. It manages the scheduling, execution, and monitoring of the data pipeline. 
+
 ## First Time Setup for a Local Instance
 ### 1) Install WSL
 It is recommended to run the Dagster instance on the WSL (Windows Subsystem for Linux) so that our local environment mimics the server's Linux environment (server deployment still to come). 
@@ -126,7 +143,7 @@ If not installed, install with:
 curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
-Once installed, add it to your PATH so that your termianl can find it (PATH is a list of folders your terminal searches through when you type a command. It will allow us to type "uv" in the command line and instruct the terminal to use the functionalities of uv).
+Add it to your PATH so that your termianl can find it (PATH is a list of folders your terminal searches through when you type a command. It will allow us to type "uv" in the command line and instruct the terminal to use the functionalities of uv).
 ```bash 
 source $HOME/.local/bin/env
 ```
@@ -139,7 +156,7 @@ source .venv/bin/activate
 uv sync
 ```
 - uv venv creates a virtual environment (an isolated Python installation just for this project)
-- source .venv/bin/activate activates it - you will see (tedisc-dagster) appear to the left of your terminal prompt confirming it is active
+- source .venv/bin/activate activates it - you will see (TEDISC-Dagster) appear to the left of your terminal prompt confirming it is active
 - uv sync reads pyproject.toml and installs all the required packages
 
 ### 8) Run Dagster
@@ -176,7 +193,7 @@ code .
 ## Project Structure:
 ```
 TEDISC-Dagster/
-├── tedisc_dagster/         - Python package containing all Dagster logic
+├── tedisc_dagster/         
 │   ├── __init__.py
 │   ├── definitions.py
 │   └── defs/
@@ -190,11 +207,23 @@ TEDISC-Dagster/
 │       ├── schedules.py
 │       ├── sensors.py
 │       └── utils.py
-├── pyproject.toml          - Project dependencies and configuration
-├── uv.lock                 - Locked dependency versions (do not edit manually)
+├── pyproject.toml          
+├── uv.lock                 
 └── README.md
 ```
+- `tedisc_dagster/`: Python package containing all Dagster logic for the project
+- `__init__.py `: Marks the directory as a Python package. Required by Python but otherwise empty.
+- `definitions.py`: Entry point for Dagster. Registers all assets, jobs, schedules, sensor and rsources into a single Definitions object that Dagster reads on startup. 
+- `assets/`: Contains asset definitions grouped by data source. In Dagster, an asset represents a persistent piece of data (a file, a database table, etc.) and the code that produces it. Most of the script writing will happen within the files in this folder.
+- `BirdLife.py` - Assets for ingesting and processing species occurrence data from BirdLife Australia.
+- `iNaturalist.py` - Assets for ingesting and processing species occurrence data from iNaturalist.
+- `constants.py` - Stores project-wide constants such as file paths, species lists, and column names. I've chosen to store all of these here in a centralised place to make it easier to keep track of and update. 
+- `resources.py` - Configures shared resources such as database connections, API clients, or file system handles. Defining these as resources means they can be swapped out easily - for example, using a local file system in development and cloud storage in production.
+- `schedules.py` - Defines schedules that trigger jobs automatically at set times or intervals, similar to a cron job.
+- `sensors.py` - Defines sensors that trigger jobs in response to external events, such as a new file arriving in a directory or a new record appearing in a database.
+- `utils.py` - Shared helper functions used across the project (the asset files can get kinda chunky as is, so I've opted to write functions somewhere else)
+- `pyproject.toml` - Defines the project's Python dependencies and configuration. uv reads this file to know what packages to install.
+- `uv.lock` - A snapshot of the exact versions of every dependency installed. Ensures everyone working on the project uses identical package versions. Do not edit manually.
 
 
-
-
+A lot of these files are empty/have filler code from Claude (e.g. schedules.py, sensors.py) - for now I just wanted to get the basic bones of the project defined. 
