@@ -5,7 +5,7 @@ In brief, NESP 4.7 is looking to estimate the impact of newly proposed offshore 
 
 Through TEDSIC, we hope to build a reproducible, auditable data supply chain; reducing manual effort, improving traceability, and making the workflow repeatable as new data becomes available or new wind farm proposals emerge.
 
-Below is a high level overview of the NESP 4.7 workflow, and where the TEDISC project is tagreting for automation:
+Below is a high level overview of the NESP 4.7 workflow, and where the TEDISC project is tagreting for automation (Products 1, 2 and 3):
 
 ![4.7 Workflow](docs/Entire%204.7-TEDISC%20Workflow.png)
 
@@ -159,7 +159,23 @@ uv sync
 - source .venv/bin/activate activates it - you will see (TEDISC-Dagster) appear to the left of your terminal prompt confirming it is active
 - uv sync reads pyproject.toml and installs all the required packages
 
-### 8) Run Dagster
+### 8) Create your `.env` file
+The project uses a .env file to store environment-specific configuration (file paths, credentials etc.) that differ between machines. This allows your machine and the server machine to use the same repo, but point towards different variables specific to the setups. The file is not included in the repo and must be created manually.
+
+In the project root (i.e. in TEDISC-Dagster/), create a file called .env (no extension) and add the following:
+```
+BLA_FILEPATH=/your/path/to/bla_output_csiro_290525.csv
+
+DB_HOST=testimasag3.its.utas.edu.au
+DB_PORT=1433
+DB_NAME=IMASOREMonitoring
+DB_USER=yourusername
+DB_PASSWORD=yourpassword
+DB_DRIVER=ODBC Driver 18 for SQL Server
+# - ...
+```
+
+### 9) Run Dagster
 ```bash 
 dagster dev
 ```
@@ -168,7 +184,8 @@ and you should be see the Dagster UI.
 
 Note that your terminal is now occcupied while Dagster is running. If you need to use a terminal, you will need to open a new one. You can close the dagster instance with Ctrl+C. 
 
-### 9) Open the project in VS Code
+
+### 10) Open the project in VS Code
 From the project directory, run:
 ```bash 
 code .
@@ -207,6 +224,7 @@ TEDISC-Dagster/
 │       ├── schedules.py
 │       ├── sensors.py
 │       └── utils.py
+├── .env
 ├── pyproject.toml          
 ├── uv.lock                 
 └── README.md
@@ -222,6 +240,7 @@ TEDISC-Dagster/
 - `schedules.py` - Defines schedules that trigger jobs automatically at set times or intervals, similar to a cron job.
 - `sensors.py` - Defines sensors that trigger jobs in response to external events, such as a new file arriving in a directory or a new record appearing in a database.
 - `utils.py` - Shared helper functions used across the project (the asset files can get kinda chunky as is, so I've opted to write functions somewhere else)
+- `.env` - Stores machine-specific configuration such as file paths. Not committed to the repo - each user creates their own. See setup step 8.
 - `pyproject.toml` - Defines the project's Python dependencies and configuration. uv reads this file to know what packages to install.
 - `uv.lock` - A snapshot of the exact versions of every dependency installed. Ensures everyone working on the project uses identical package versions. Do not edit manually.
 
