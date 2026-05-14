@@ -4,6 +4,7 @@ from tedisc_dagster.defs import constants
 
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 from datetime import datetime, date
 from tedisc_dagster.defs.utils import create_absence_records, assign_data_type
 
@@ -11,7 +12,8 @@ from tedisc_dagster.defs.utils import create_absence_records, assign_data_type
 # BirdLife Australia 
 # ───────────────────────────────────────────────────────────────────────────────────────────────────
 
-filepath = "/home/eloisewm/Datasets/BirdLife Aus/bla_output_csiro_290525.csv"
+load_dotenv()
+filepath = os.environ.get("BLA_FILEPATH")
 
 @asset(
         group_name = "BirdLife_Australia", 
@@ -404,12 +406,20 @@ def padded_bla(context: AssetExecutionContext, typed_bla: pd.DataFrame) -> pd.Da
     return padded
 
 
-@asset(group_name="BirdLife_Australia")
-def exported_bla(context: AssetExecutionContext, padded_bla: pd.DataFrame):
+@asset(
+    group_name="BirdLife_Australia",
+    io_manager_key="bcp_io_manager", # envokes an io manager to handle whatever the output of the asset is
+    metadata={
+        "schema": "dbo",
+        "table": "bla_processed_test",
+        "asset_schema": constants.BLA_ASSET_SCHEMA,
+    },
+)
+def exported_bla(context: AssetExecutionContext, padded_bla: pd.DataFrame) -> pd.DataFrame:
     """
-    Export the padded dataframe to csv for assessment.
-    This will need to be changed to exporting to SQL server eventually
+    Bulk-loads the processed BirdLife Australia dataset into MSSQL
+    using the BCP utility via dagster-mssql-bcp.
+ 
+    The table will be created automatically if it does not exist.
     """
-    output_path = "/home/eloisewm/Datasets/BirdLife Aus/bla_processed.csv"
-    padded_bla.to_csv(output_path, index=False)
-    context.add_output_metadata({"row_count": len(padded_bla), "output_path": output_path})
+    return padded_bla
