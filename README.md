@@ -7,7 +7,7 @@ Through TEDSIC, we hope to build a reproducible, auditable data supply chain; re
 
 Below is a high level overview of the NESP 4.7 workflow, and where the TEDISC project is tagreting for automation (Products 1, 2 and 3):
 
-![4.7 Workflow](docs/Entire%204.7-TEDISC%20Workflow.png)
+![4.7 Workflow](docs/TEDISC%20Workflow.png)
 
 The current focus is automating the retrieval and QAQC of species occurrence data for input into the species distribution models. The plan for the approach is documented here:
 
