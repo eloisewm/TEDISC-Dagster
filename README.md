@@ -56,7 +56,7 @@ If not installed (i.e. you get `Command 'git' not found`), install with
 sudo apt install git
 ```
 
-For a fresh install, you will need to tell git who you are. Run these two commands with your name and the email address associated with your Github account:
+For a fresh install, you will need to tell git who you are. Run these two commands with your name (this is just what you want to show up on your git commits, not your username) and the email address associated with your Github account:
 ```bash 
 git config --global user.name "Your Name"
 git config --global user.email "your@email.com"
@@ -119,9 +119,9 @@ Hi eloisewm! You've successfully authenticated, but GitHub does not provide shel
 then you're good to go.
 
 ### 5) Clone the Repo
-In the terminal, navigate to where you want to store the project (you can use File Explorer to go into the WSL directories and create new folders). For example:
+In the terminal, navigate to where you want to store the project. It is recommended to use `mkdir "Projects"` rather than using file explorer to create new folders (avoids permission issues). Navigate there with:
 ```bash
-cd /home/eloisewm/Github/
+cd /home/eloisewm/Projects/
 ```
 Clone the repo: 
 ```bash
@@ -199,7 +199,7 @@ This opens VS Code from inside the WSL. Do not open the project through File -> 
 ## Starting a New Session
 Each time you come back to work on the project, open an Ubuntu terminal:
 ```bash
-cd ~Github/TEDISC-Dagster # (or wherever your project is)
+cd ~Projects/TEDISC-Dagster # (or wherever your project is)
 source .venv/bin/activate
 dasgster dev
 ```
