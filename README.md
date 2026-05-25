@@ -125,7 +125,7 @@ cd /home/eloisewm/Projects/
 ```
 Clone the repo: 
 ```bash
-git clone https://github.com/eloisewm/TEDISC-Dagster
+git clone git@github.com:eloisewm/TEDISC-Dagster.git
 ```
 
 Now that the repo is synced, cd into it with
