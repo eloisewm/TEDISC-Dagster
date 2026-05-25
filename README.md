@@ -23,10 +23,13 @@ If you don't have it installed, open a Windows PowerShell terminal and run
 ```bash
 wsl --install
 ```
+Then install Ubuntu (or whichever distribution you prefer) with
+```bash
+wsl --install -d Ubuntu
+```
+Once it finishes, follow any prompts (possible restart required).
 
-This will install WSL with Ubuntu (a version of Linux) by default. Once it finishes, follow any prompts (possible restart required).
-
-After restarting, open Ubuntu from the start menu (or open powershell and type `wsl`). The first time it opens it will ask you to create a username and password. This is your Linux account - it doesnt need to match your Windows credentials. 
+After restarting, open a terminal and enter `wsl` to get onto the subsystem. The first time it opens it will ask you to create a username and password. This is your Linux account - it doesnt need to match your Windows credentials. 
 
 This is now a Linux terminal - all subsequent steps are run from here. 
 
