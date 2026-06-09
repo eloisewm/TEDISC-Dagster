@@ -21,12 +21,9 @@ It is recommended to run the Dagster instance on the WSL (Windows Subsystem for 
 
 If you don't have it installed, open a Windows PowerShell terminal and run 
 ```bash
-wsl --install
-```
-Then install Ubuntu (or whichever distribution you prefer) with
-```bash
 wsl --install -d Ubuntu
 ```
+This installs the WSL with Ubuntu as the distribution.  
 Once it finishes, follow any prompts (possible restart required).
 
 After restarting, open a terminal and enter `wsl` to get onto the subsystem. The first time it opens it will ask you to create a username and password. This is your Linux account - it doesnt need to match your Windows credentials. 
@@ -44,7 +41,7 @@ The extension allows for VSCode to run from inside the WSL.
 It is assumed that you have set up a Github account. If you do not have one, go to https://github.com/signup
 
 We will need to set up git to be able to clone the Github Repository to your pc
-(Git is the thing running behind the scenes that actually tracks your changes - GitHub is just the website that lets you see and share what git is doing). 
+(Git is the thing running behind the scenes that actually tracks your changes - GitHub is just the website that lets you see and share what git is doing).    
 In your terminal, check if git is intalled with 
 ```bash
 git --version
@@ -179,13 +176,12 @@ DB_DRIVER=ODBC Driver 18 for SQL Server
 ```
 
 ### 9) Run Dagster
-Dagster is now technically ready to run - however, to fully mimic the server's environement we will need to use Docker. FOr now, run without just to check that everything is working. 
+Dagster is now technically ready to run - however, to fully mimic the server's environement we will need to use Docker. FOr now, run without Docker just to check that everything is working. 
 ```bash 
 dagster dev
 ```
 This starts a local Dagster instance. Open http://localhost:3000 in a browser
-and you should be see the Dagster UI. 
-
+and you should be see the Dagster UI.    
 Note that your terminal is now occcupied while Dagster is running. If you need to use a terminal, you will need to open a new one. You can close the dagster instance with Ctrl+C. 
 
 
@@ -202,7 +198,7 @@ This opens VS Code from inside the WSL. Do not open the project through File -> 
 ## Docker Setup (Local)
 The project runs in Docker containers locally to mimic the server environment. You will need Docker and Docker Compose installed.
 
-1) Install Docker and Docker Compose
+### 1) Install Docker and Docker Compose
 ```bash 
 sudo apt update
 sudo apt install docker.io -y
@@ -217,20 +213,21 @@ sudo usermod -aG docker $USER
 newgrp docker
 ```
 
-2) Start Docker
+### 2) Start Docker
 Docker does not start automatically in WSL. Run this at the start of each session:
 ```bash
 sudo service docker start
 ```
 
-3) Create your dagster.yaml
+### 3) Create your dagster.yaml
 
 Like .env, dagster.yaml is machine-specific and not committed to the repo. Create it by copying the example file:
 ```bash
 cp dagster.yaml.example dagster.yaml
 ```
 The default values in the example are correct for local WSL. No changes needed for local use.
-4) Build and run the containers
+
+### 4) Build and run the containers
 
 ```bash
 docker compose up --build
@@ -239,11 +236,18 @@ The --build flag is only needed the first time, or after changing a Dockerfile o
 ```bash
 docker compose up
 ```
-Open http://localhost:3004 in a browser to access the Dagit UI.
+Open http://localhost:3004 in a browser to access the Dagit UI.    
 To stop the containers, press Ctrl+C.
 
+### 5) Open the project in VSCode
+From the project directopry, open VS Code with:
+```bash 
+code .
+```
+
+
 ## Starting a new session
-There are two ways to run the project locally. Use Docker unless you have a specific reason not to.
+After the initial setup, use the steps below each time you return to work on the project. There are two ways to run it locally - Docker is preferred as it mirrors the server environment.
 ### With Docker (preffered)
 ```bash
 sudo service docker start
@@ -252,6 +256,7 @@ docker compose up
 ```
 Open http://localhost:3004 in a browser to access the Dagit UI.
 To stop the containers, press Ctrl+C.
+
 Open VS Code with:
 ```bash 
 code .
@@ -266,6 +271,7 @@ dagster dev
 ```
 Open http://localhost:3000 in a browser to access the Dagit UI.
 To stop the containers, press Ctrl+C.
+
 Open VS Code with:
 ```bash 
 code .
@@ -290,9 +296,15 @@ TEDISC-Dagster/
 │       ├── schedules.py
 │       ├── sensors.py
 │       └── utils.py
-├── .env
-├── pyproject.toml          
-├── uv.lock                 
+├── .env                  # gitignored
+├── docker-compose.yaml
+├── Dockerfile_dagster
+├── Dockerfile_user_code
+├── dagster.yaml          # gitignored
+├── dagster.yaml.example
+├── workspace.yaml
+├── pyproject.toml
+├── uv.lock
 └── README.md
 ```
 - `tedisc_dagster/`: Python package containing all Dagster logic for the project
@@ -307,6 +319,12 @@ TEDISC-Dagster/
 - `sensors.py` - Defines sensors that trigger jobs in response to external events, such as a new file arriving in a directory or a new record appearing in a database.
 - `utils.py` - Shared helper functions used across the project (the asset files can get kinda chunky as is, so I've opted to write functions somewhere else)
 - `.env` - Stores machine-specific configuration such as file paths. Not committed to the repo - each user creates their own. See setup step 8.
+- `dagster.yaml` - Tells Dagster how to store data and launch pipeline runs. Machine-specific due to differences in Docker socket paths between local and server environments. Not committed to the repo - create from `dagster.yaml.example`. See Docker setup.
+- `dagster.yaml.example` - Template for `dagster.yaml`. Committed to the repo as a reference. Copy this to `dagster.yaml` and adjust for your machine if needed.
+- `workspace.yaml` - Tells the Dagster webserver where to find your pipeline code (the user code container, on port 4004). Committed to the repo and the same across all environments.
+- `Dockerfile_dagster` - Defines the Docker image for the Dagster webserver and daemon. Installs Dagster and its dependencies.
+- `Dockerfile_user_code` - Defines the Docker image for your pipeline code. Installs all project dependencies including the Microsoft SQL Server driver.
+- `docker-compose.yaml` - Defines all four containers (PostgreSQL, webserver, daemon, user code) and how they connect to each other. This is the file you interact with to start and stop the project.
 - `pyproject.toml` - Defines the project's Python dependencies and configuration. uv reads this file to know what packages to install.
 - `uv.lock` - A snapshot of the exact versions of every dependency installed. Ensures everyone working on the project uses identical package versions. Do not edit manually.
 
