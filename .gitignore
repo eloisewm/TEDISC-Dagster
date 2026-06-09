@@ -4,3 +4,4 @@ __pycache__/
 .venv/
 Random scripts/
 .env
+dagster.yaml
