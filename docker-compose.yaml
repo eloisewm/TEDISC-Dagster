@@ -30,6 +30,10 @@ services:
       DAGSTER_POSTGRES_PASSWORD: '${DAGSTER_POSTGRES_PASSWORD:-postgres_password}'
       DAGSTER_POSTGRES_DB: '${DAGSTER_POSTGRES_DB:-postgres_db}'
       DAGSTER_CURRENT_IMAGE: 'ore_user_code_image'
+    volumes:
+      - type: bind
+        source: ${USER_CODE_PATH}
+        target: /opt/dagster/app
     networks:
       - ore_network
 
@@ -57,6 +61,7 @@ services:
       DAGSTER_POSTGRES_DB: '${DAGSTER_POSTGRES_DB:-postgres_db}'
       DAGSTER_HOME: /opt/dagster/dagster_home
     volumes:
+      - ./dagster.yaml:/opt/dagster/dagster_home/dagster.yaml
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ore_dagster_storage:/opt/dagster/dagster_home/storage
       - ore_compute_logs:/opt/dagster/dagster_home/compute_logs
@@ -83,6 +88,7 @@ services:
       DAGSTER_POSTGRES_DB: '${DAGSTER_POSTGRES_DB:-postgres_db}'
       DAGSTER_HOME: /opt/dagster/dagster_home
     volumes:
+      - ./dagster.yaml:/opt/dagster/dagster_home/dagster.yaml
       - /var/run/docker.sock:/var/run/docker.sock
       - ore_dagster_storage:/opt/dagster/dagster_home/storage
       - ore_compute_logs:/opt/dagster/dagster_home/compute_logs

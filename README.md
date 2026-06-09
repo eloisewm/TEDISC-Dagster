@@ -219,13 +219,15 @@ Docker does not start automatically in WSL. Run this at the start of each sessio
 sudo service docker start
 ```
 
-### 3) Create your dagster.yaml
+### 3) Create your `dagster.yaml`
 
-Like .env, dagster.yaml is machine-specific and not committed to the repo. Create it by copying the example file:
+Like `.env`, `dagster.yaml` is machine-specific and not committed to the repo. Create it by copying the example file:
 ```bash
 cp dagster.yaml.example dagster.yaml
 ```
-The default values in the example are correct for local WSL. No changes needed for local use.
+
+Then open `dagster.yaml` and update the user code path to match your local machine. For example, on a standard WSL setup this would be:   
+`/home/yourusername/Projects/TEDISC-Dagster:/opt/dagster/app`
 
 ### 4) Build and run the containers
 
@@ -246,34 +248,37 @@ code .
 ```
 
 
-## Starting a new session
+## Starting a New Session
+
 After the initial setup, use the steps below each time you return to work on the project. There are two ways to run it locally - Docker is preferred as it mirrors the server environment.
-### With Docker (preffered)
+
+### With Docker (preferred)
 ```bash
 sudo service docker start
 cd ~/Projects/TEDISC-Dagster
 docker compose up
 ```
-Open http://localhost:3004 in a browser to access the Dagit UI.
+Open http://localhost:3004 in a browser to access the Dagit UI.  
 To stop the containers, press Ctrl+C.
 
 Open VS Code with:
-```bash 
+```bash
 code .
 ```
-### Wihtout Docker (lightweight local development)
+
+### Without Docker (lightweight local development)
 Use this if you just want to quickly test a code change without the overhead of Docker. Note that this does not mimic the server environment.
 
-```bash 
+```bash
 cd ~/Projects/TEDISC-Dagster
 source .venv/bin/activate
 dagster dev
 ```
-Open http://localhost:3000 in a browser to access the Dagit UI.
-To stop the containers, press Ctrl+C.
+Open http://localhost:3000 in a browser to access the Dagit UI.  
+To stop Dagster, press Ctrl+C.
 
 Open VS Code with:
-```bash 
+```bash
 code .
 ```
 
@@ -297,6 +302,7 @@ TEDISC-Dagster/
 │       ├── sensors.py
 │       └── utils.py
 ├── .env                  # gitignored
+├── .dockerignore
 ├── docker-compose.yaml
 ├── Dockerfile_dagster
 ├── Dockerfile_user_code
@@ -319,6 +325,7 @@ TEDISC-Dagster/
 - `sensors.py` - Defines sensors that trigger jobs in response to external events, such as a new file arriving in a directory or a new record appearing in a database.
 - `utils.py` - Shared helper functions used across the project (the asset files can get kinda chunky as is, so I've opted to write functions somewhere else)
 - `.env` - Stores machine-specific configuration such as file paths. Not committed to the repo - each user creates their own. See setup step 8.
+- `.dockerignore` - Tells Docker which files to exclude when building images. Prevents your local `.venv`, `.env`, and `dagster.yaml` from being copied into the image during the build process.
 - `dagster.yaml` - Tells Dagster how to store data and launch pipeline runs. Machine-specific due to differences in Docker socket paths between local and server environments. Not committed to the repo - create from `dagster.yaml.example`. See Docker setup.
 - `dagster.yaml.example` - Template for `dagster.yaml`. Committed to the repo as a reference. Copy this to `dagster.yaml` and adjust for your machine if needed.
 - `workspace.yaml` - Tells the Dagster webserver where to find your pipeline code (the user code container, on port 4004). Committed to the repo and the same across all environments.

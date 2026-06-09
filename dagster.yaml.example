@@ -25,7 +25,8 @@ run_launcher:
     container_kwargs:
       auto_remove: True
       volumes:
-        - /var/run/docker.sock:/var/run/docker.sock
+        - /var/run/docker.sock:/var/run/docker.sock  # local WSL - change to /run/user/380028/docker.sock on server
+        - /your/local/path/to/TEDISC-Dagster:/opt/dagster/app  # set to USER_CODE_PATH value from your .env
         - ore_dagster_storage:/opt/dagster/dagster_home/storage
         - ore_compute_logs:/opt/dagster/dagster_home/compute_logs
 
