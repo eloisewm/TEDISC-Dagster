@@ -179,6 +179,7 @@ DB_DRIVER=ODBC Driver 18 for SQL Server
 ```
 
 ### 9) Run Dagster
+Dagster is now technically ready to run - however, to fully mimic the server's environement we will need to use Docker. FOr now, run without just to check that everything is working. 
 ```bash 
 dagster dev
 ```
@@ -196,19 +197,81 @@ code .
 
 This opens VS Code from inside the WSL. Do not open the project through File -> Open in Windows as it will cause path and environemnent issues. 
 
-## Starting a New Session
-Each time you come back to work on the project, open an Ubuntu terminal:
-```bash
-cd ~Projects/TEDISC-Dagster # (or wherever your project is)
-source .venv/bin/activate
-dasgster dev
-```
-Then open  http://localhost:3000 in your browser.
 
-Open VS Code with:
+
+## Docker Setup (Local)
+The project runs in Docker containers locally to mimic the server environment. You will need Docker and Docker Compose installed.
+
+1) Install Docker and Docker Compose
+```bash 
+sudo apt update
+sudo apt install docker.io -y
+sudo apt install docker-compose -y
+```
+
+Add your user to the Docker group so you don't need sudo every time:
+
 ```bash
+sudo apt install util-linux-extra -y
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+2) Start Docker
+Docker does not start automatically in WSL. Run this at the start of each session:
+```bash
+sudo service docker start
+```
+
+3) Create your dagster.yaml
+
+Like .env, dagster.yaml is machine-specific and not committed to the repo. Create it by copying the example file:
+```bash
+cp dagster.yaml.example dagster.yaml
+```
+The default values in the example are correct for local WSL. No changes needed for local use.
+4) Build and run the containers
+
+```bash
+docker compose up --build
+```
+The --build flag is only needed the first time, or after changing a Dockerfile or dependencies. For subsequent starts:
+```bash
+docker compose up
+```
+Open http://localhost:3004 in a browser to access the Dagit UI.
+To stop the containers, press Ctrl+C.
+
+## Starting a new session
+There are two ways to run the project locally. Use Docker unless you have a specific reason not to.
+### With Docker (preffered)
+```bash
+sudo service docker start
+cd ~/Projects/TEDISC-Dagster
+docker compose up
+```
+Open http://localhost:3004 in a browser to access the Dagit UI.
+To stop the containers, press Ctrl+C.
+Open VS Code with:
+```bash 
 code .
 ```
+### Wihtout Docker (lightweight local development)
+Use this if you just want to quickly test a code change without the overhead of Docker. Note that this does not mimic the server environment.
+
+```bash 
+cd ~/Projects/TEDISC-Dagster
+source .venv/bin/activate
+dagster dev
+```
+Open http://localhost:3000 in a browser to access the Dagit UI.
+To stop the containers, press Ctrl+C.
+Open VS Code with:
+```bash 
+code .
+```
+
+
 
 ## Project Structure:
 ```
