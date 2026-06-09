@@ -1,0 +1,5 @@
+load_from:
+  - grpc_server:
+      host: dagster_user_code
+      port: 4004
+      location_name: "ore_user_code"
