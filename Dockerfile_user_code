@@ -31,7 +31,7 @@ WORKDIR /opt/dagster/app
 
 EXPOSE 4004
 
-HEALTHCHECK --timeout=1s --start-period=3s --interval=3s --retries=20 \
+HEALTHCHECK --timeout=10s --start-period=3s --interval=3s --retries=20 \
     CMD ["dagster", "api", "grpc-health-check", "-p", "4004"]
 
 CMD ["dagster", "code-server", "start", "-h", "0.0.0.0", "-p", "4004", "-f", "tedisc_dagster/definitions.py"]
