@@ -1,11 +1,11 @@
 ## Project Summary
-The ORE-TEDISC (Offshore Renenewable Energy Trusted Environmental Data and Information Supply Chain) project aims to automate the processes currently being carried out manually under the NESP 4.7 project.
+The ORE-TEDISC (Offshore Renewable Energy Trusted Environmental Data and Information Supply Chain) project aims to automate the processes currently being carried out manually under the NESP 4.7 project.
 
-In brief, NESP 4.7 is looking to estimate the impact of newly proposed offshore windfarms in the Gippsland area on a set of priority species. This process involves a substantial effort in discovering and collating data, getting it model-ready, and feeding it through a system of interconnected models. 
+In brief, NESP 4.7 is looking to estimate the impact of newly proposed offshore windfarms in the Gippsland area on a set of priority species. This process involves a substantial effort in discovering and collating data, getting it model-ready, and feeding it through a system of interconnected models.
 
-Through TEDSIC, we hope to build a reproducible, auditable data supply chain; reducing manual effort, improving traceability, and making the workflow repeatable as new data becomes available or new wind farm proposals emerge.
+Through TEDISC, we hope to build a reproducible, auditable data supply chain; reducing manual effort, improving traceability, and making the workflow repeatable as new data becomes available or new wind farm proposals emerge.
 
-Below is a high level overview of the NESP 4.7 workflow, and where the TEDISC project is tagreting for automation (Products 1, 2 and 3):
+Below is a high level overview of the NESP 4.7 workflow, and where the TEDISC project is targeting for automation (Products 1, 2 and 3):
 
 ![4.7 Workflow](docs/TEDISC%20Workflow.png)
 
@@ -13,158 +13,122 @@ The current focus is automating the retrieval and QAQC of species occurrence dat
 
 ![Model Ready Data Workflow](docs/Model%20Ready%20Data%20Workflow.png)
 
-TEDISC will be built on Dagster, an open-source data orchestration platform. It manages the scheduling, execution, and monitoring of the data pipeline. 
+TEDISC is built on Dagster, an open-source data orchestration platform. It manages the scheduling, execution, and monitoring of the data pipeline. The project runs entirely in Docker containers, both locally and on the server, to ensure a consistent and reproducible environment.
 
-## First Time Setup for a Local Instance
+
+## First Time Setup
+
 ### 1) Install WSL
-It is recommended to run the Dagster instance on the WSL (Windows Subsystem for Linux) so that our local environment mimics the server's Linux environment (server deployment still to come). 
+It is recommended to run the Dagster instance on WSL (Windows Subsystem for Linux) so that the local environment matches the server's Linux environment.
 
-If you don't have it installed, open a Windows PowerShell terminal and run 
+If you don't have it installed, open a Windows PowerShell terminal and run:
 ```bash
 wsl --install -d Ubuntu
 ```
-This installs the WSL with Ubuntu as the distribution.  
-Once it finishes, follow any prompts (possible restart required).
+This installs WSL with Ubuntu as the distribution. Once it finishes, follow any prompts (a restart may be required).
 
-After restarting, open a terminal and enter `wsl` to get onto the subsystem. The first time it opens it will ask you to create a username and password. This is your Linux account - it doesnt need to match your Windows credentials. 
+After restarting, open a terminal and enter `wsl` to get onto the subsystem. The first time it opens it will ask you to create a username and password - this is your Linux account and does not need to match your Windows credentials.
 
-This is now a Linux terminal - all subsequent steps are run from here. 
+This is now a Linux terminal - all subsequent steps are run from here.
 
-### 2) Install VS Code and the WSL extension 
-If you don't have VS Code installed, download from https://code.visualstudio.com/ and install on Windows as normal. 
+### 2) Install VS Code and the WSL extension
+If you don't have VS Code installed, download it from https://code.visualstudio.com/ and install on Windows as normal.
 
-Once installed, go to the Extensions panel on the left (the four squares icon), search for "WSL", and install the extension. 
+Once installed, go to the Extensions panel on the left (the four squares icon), search for "WSL", and install the extension.
 
-The extension allows for VSCode to run from inside the WSL.
+The extension allows VS Code to run from inside the WSL.
 
-### 3) Set up Git and Github
-It is assumed that you have set up a Github account. If you do not have one, go to https://github.com/signup
+### 3) Set up Git and GitHub
+It is assumed that you have a GitHub account. If you do not have one, go to https://github.com/signup
 
-We will need to set up git to be able to clone the Github Repository to your pc
-(Git is the thing running behind the scenes that actually tracks your changes - GitHub is just the website that lets you see and share what git is doing).    
-In your terminal, check if git is intalled with 
+Check if git is installed:
 ```bash
 git --version
 ```
 
-
-If not installed (i.e. you get `Command 'git' not found`), install with
-```bash 
+If not installed (i.e. you get `Command 'git' not found`), install with:
+```bash
 sudo apt install git
 ```
 
-For a fresh install, you will need to tell git who you are. Run these two commands with your name (this is just what you want to show up on your git commits, not your username) and the email address associated with your Github account:
-```bash 
+For a fresh install, tell git who you are. Run these two commands with the name you want to appear on commits and the email address associated with your GitHub account:
+```bash
 git config --global user.name "Your Name"
 git config --global user.email "your@email.com"
 ```
 
-### 4) Set Up SSH Keys for Github
-SSH keys are how your machine authenticates with Github without needing to enter a password every time you want to push changes to your GitHub repo. You need to create a key on your machine and then give Github the public half of it.
+### 4) Set up SSH keys for GitHub
+SSH keys allow your machine to authenticate with GitHub without entering a password each time you push changes.
 
-Check if you already have one with:
-```bash 
+Check if you already have one:
+```bash
 ls ~/.ssh
 ```
 
-If nothing with the format id_ed25519 shows up (likely to be the case), create one with:
-```bash 
+If nothing with the format `id_ed25519` shows up, create one:
+```bash
 ssh-keygen -t ed25519 -C "your@email.com"
 ```
 
-When prompted with `Enter file in which to save the key`, just hit Enter to accept the default location.
+When prompted for a file location, hit Enter to accept the default. When prompted for a passphrase, hit Enter twice for no passphrase.
 
-When prompted for a passphrase, hit Enter twice for no passphrase.
-
-Now get the contents of your public key:
-```bash 
-cat ~/.ssh/id_ed25519.pub # (cat opens the file in your terminal)
+Get the contents of your public key:
+```bash
+cat ~/.ssh/id_ed25519.pub
 ```
 
-It should look something like this:
-```
-ssh-ed25519 AAAAC3NzaC1lZDI1NT*****/U eloisewilsonmayne@gmail.com
-```
+Copy the entire output, then go to GitHub -> Settings -> SSH and GPG keys -> New SSH Key. Give it a title (e.g. "WSL"), paste the key, and click Add SSH Key.
 
-Copy the entire output and go to Github:
-- Go to Settings
-- Select SSH and GPG keys
-- New SSH Key (give this a title like "WSL")
-- Paste under Key
-- Click Add SSH Key
-
-Back in your teminal, test that this worked with 
+Test that it worked:
 ```bash
 ssh -T git@github.com
 ```
 
-An expected output is:
+If it returns `Hi <username>! You've successfully authenticated`, you're good to go.
 
-```
-The authenticity of host 'github.com (4.237.22.38)' can't be established.
-ED25519 key fingerprint is SHA256:+DiY3wv****/zLD*****.
-This key is not known by any other names.
-Are you sure you want to continue connecting (yes/no/[fingerprint])?
-```
-type "yes"
-
-If it returns:
-```
-Warning: Permanently added 'github.com' (ED25519) to the list of known hosts.
-Hi eloisewm! You've successfully authenticated, but GitHub does not provide shell access.
-```
-then you're good to go.
-
-### 5) Clone the Repo
-In the terminal, navigate to where you want to store the project. It is recommended to use `mkdir "Projects"` rather than using file explorer to create new folders (avoids permission issues). Navigate there with:
+### 5) Clone the repo
+Navigate to where you want to store the project:
 ```bash
-cd /home/eloisewm/Projects/
+cd /home/<your-username>/Projects/
 ```
-Clone the repo: 
+
+Clone the repo:
 ```bash
 git clone git@github.com:eloisewm/TEDISC-Dagster.git
-```
-
-Now that the repo is synced, cd into it with
-``` bash
 cd TEDISC-Dagster
 ```
 
-### 6) Install uv
-uv is the pacakge manager used to manage Python dependencies for this project (i.e. instructs python to use specific version of specific packages that our project relies on)
-
-Check if it is already installed with 
-```bash 
-uv --version
-```
-
-If not installed, install with:
-```bash 
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
-
-Add it to your PATH so that your termianl can find it (PATH is a list of folders your terminal searches through when you type a command. It will allow us to type "uv" in the command line and instruct the terminal to use the functionalities of uv).
-```bash 
-source $HOME/.local/bin/env
-```
-
-### 7) Set Up the Python Environment
-From inside the TEDISC-Dagster directory, run:
+### 6) Install Docker and Docker Compose
 ```bash
-uv venv
-source .venv/bin/activate
-uv sync
+sudo apt update
+sudo apt install docker.io -y
+sudo apt install docker-compose -y
 ```
-- uv venv creates a virtual environment (an isolated Python installation just for this project)
-- source .venv/bin/activate activates it - you will see (TEDISC-Dagster) appear to the left of your terminal prompt confirming it is active
-- uv sync reads pyproject.toml and installs all the required packages
+
+Add your user to the Docker group so you don't need `sudo` every time:
+```bash
+sudo apt install util-linux-extra -y
+sudo usermod -aG docker $USER
+newgrp docker
+```
+
+### 7) Add input data files
+The pipeline reads input data files from the `Datasets/` directory in the project root. This directory is not committed to the repo and must be created manually.
+
+Create the directory and add the required files:
+```bash
+mkdir -p Datasets/BirdLifeAustralia
+```
+
+Then copy the BirdLife Australia CSV into that folder. The expected filename is `bla_output_csiro_290525.csv`.
 
 ### 8) Create your `.env` file
-The project uses a .env file to store environment-specific configuration (file paths, credentials etc.) that differ between machines. This allows your machine and the server machine to use the same repo, but point towards different variables specific to the setups. The file is not included in the repo and must be created manually.
+The project uses a `.env` file to store machine-specific configuration (credentials etc.) that differ between environments. This file is not committed to the repo and must be created manually.
 
-In the project root (i.e. in TEDISC-Dagster/), create a file called .env (no extension) and add the following:
+In the project root (i.e. in `TEDISC-Dagster/`), create a file called `.env` and add the following:
+
 ```
-BLA_FILEPATH=/your/path/to/bla_output_csiro_290525.csv
+BLA_FILEPATH=/opt/dagster/app/Datasets/BirdLifeAustralia/bla_output_csiro_290525.csv
 
 DB_HOST=testimasag3.its.utas.edu.au
 DB_PORT=1433
@@ -172,168 +136,126 @@ DB_NAME=IMASOREMonitoring
 DB_USER=yourusername
 DB_PASSWORD=yourpassword
 DB_DRIVER=ODBC Driver 18 for SQL Server
-# - ...
 ```
 
-### 9) Run Dagster
-Dagster is now technically ready to run - however, to fully mimic the server's environement we will need to use Docker. FOr now, run without Docker just to check that everything is working. 
-```bash 
-dagster dev
-```
-This starts a local Dagster instance. Open http://localhost:3000 in a browser
-and you should be see the Dagster UI.    
-Note that your terminal is now occcupied while Dagster is running. If you need to use a terminal, you will need to open a new one. You can close the dagster instance with Ctrl+C. 
+**Important:** `BLA_FILEPATH` must be the path as it appears *inside the Docker container*, not on your local machine. The project directory is mounted into the container at `/opt/dagster/app`, so all data files under `Datasets/` are accessible at `/opt/dagster/app/Datasets/`.
 
+### 9) Update `dagster.yaml` with your project path
+The run launcher in `dagster.yaml` needs to know the absolute path to the project on your local machine so it can mount the code into pipeline run containers. Find this line near the bottom of the `container_kwargs.volumes` section:
 
-### 10) Open the project in VS Code
-From the project directory, run:
-```bash 
-code .
+```yaml
+- /home/eloisewm/Projects/TEDISC-Dagster:/opt/dagster/app
 ```
 
-This opens VS Code from inside the WSL. Do not open the project through File -> Open in Windows as it will cause path and environemnent issues. 
-
-
-
-## Docker Setup (Local)
-The project runs in Docker containers locally to mimic the server environment. You will need Docker and Docker Compose installed.
-
-### 1) Install Docker and Docker Compose
-```bash 
-sudo apt update
-sudo apt install docker.io -y
-sudo apt install docker-compose -y
-```
-
-Add your user to the Docker group so you don't need sudo every time:
+Replace `/home/eloisewm/Projects/TEDISC-Dagster` with the absolute path to the project on your machine. You can find this by running:
 
 ```bash
-sudo apt install util-linux-extra -y
-sudo usermod -aG docker $USER
-newgrp docker
+pwd
 ```
 
-### 2) Start Docker
-Docker does not start automatically in WSL. Run this at the start of each session:
-```bash
-sudo service docker start
-```
+from inside the project directory.
 
-### 3) Create your `dagster.yaml`
-
-Like `.env`, `dagster.yaml` is machine-specific and not committed to the repo. Create it by copying the example file:
-```bash
-cp dagster.yaml.example dagster.yaml
-```
-
-Then open `dagster.yaml` and update the user code path to match your local machine. For example, on a standard WSL setup this would be:   
-`/home/yourusername/Projects/TEDISC-Dagster:/opt/dagster/app`
-
-### 4) Build and run the containers
-
+### 10) Build and run the containers
 ```bash
 docker compose up --build
 ```
-The --build flag is only needed the first time, or after changing a Dockerfile or dependencies. For subsequent starts:
+
+The `--build` flag rebuilds the Docker images from the Dockerfiles. It is only needed the first time, or after changes to a Dockerfile or `dagster.yaml`. For subsequent starts:
 ```bash
 docker compose up
 ```
-Open http://localhost:3004 in a browser to access the Dagit UI.    
-To stop the containers, press Ctrl+C.
 
-### 5) Open the project in VSCode
-From the project directopry, open VS Code with:
-```bash 
+Open http://localhost:3004 in a browser to access the Dagster UI.
+
+To stop the containers:
+```bash
+docker compose down
+```
+
+### 11) Open the project in VS Code
+From the project directory:
+```bash
 code .
 ```
 
+Do not open the project through File -> Open in Windows - it will cause path and environment issues.
 
-## Starting a New Session
 
-After the initial setup, use the steps below each time you return to work on the project. There are two ways to run it locally - Docker is preferred as it mirrors the server environment.
-
-### With Docker (preferred)
+## Starting a new session
 ```bash
 sudo service docker start
 cd ~/Projects/TEDISC-Dagster
 docker compose up
 ```
-Open http://localhost:3004 in a browser to access the Dagit UI.  
-To stop the containers, press Ctrl+C.
 
-Open VS Code with:
-```bash
-code .
-```
+Open http://localhost:3004 in a browser to access the Dagster UI. Open VS Code with `code .`
 
-### Without Docker (lightweight local development)
-Use this if you just want to quickly test a code change without the overhead of Docker. Note that this does not mimic the server environment.
-
-```bash
-cd ~/Projects/TEDISC-Dagster
-source .venv/bin/activate
-dagster dev
-```
-Open http://localhost:3000 in a browser to access the Dagit UI.  
-To stop Dagster, press Ctrl+C.
-
-Open VS Code with:
-```bash
-code .
-```
+Note: Docker does not start automatically in WSL - you need to run `sudo service docker start` each session.
 
 
+## Machine-specific values
+The following values differ per machine and must be set manually. They are not committed to the repo.
 
-## Project Structure:
+| Value | Where to set it | Notes |
+| --- | --- | --- |
+| `BLA_FILEPATH` | `.env` | Must use the container-internal path: `/opt/dagster/app/Datasets/...` |
+| `DB_USER`, `DB_PASSWORD` | `.env` | Your personal database credentials |
+| Project bind mount path | `dagster.yaml` under `container_kwargs.volumes` | Absolute path to the project root on your local machine |
+| Docker socket path | `dagster.yaml` and `docker-compose.yaml` | See Server Deployment below |
+
+
+## Server Deployment
+The server (`dagster-dev.its.utas.edu.au`) uses rootless Docker, which means the Docker socket is at a different path than on a standard Linux machine. This affects the volume mounts in `dagster.yaml` and `docker-compose.yaml`.
+
+On the server, the Docker socket path is `/run/user/<uid>/docker.sock` rather than `/var/run/docker.sock`. Search for all occurrences of `/var/run/docker.sock` in both files and replace with the correct path. Contact admin for the correct UID and any credential setup required.
+
+The project bind mount path in `dagster.yaml` will also need to be updated to reflect the server's directory structure.
+
+
+## Project Structure
 ```
 TEDISC-Dagster/
-├── tedisc_dagster/         
+├── tedisc_dagster/
 │   ├── __init__.py
 │   ├── definitions.py
 │   └── defs/
 │       ├── assets/
-│       │   ├──  __init__.py
-│       │   ├──  BirdLife.py
-│       │   └──  iNaturalist.py
-│       ├── constants.py   
+│       │   ├── __init__.py
+│       │   ├── BirdLife.py
+│       │   └── iNaturalist.py
+│       ├── constants.py
 │       ├── jobs.py
 │       ├── resources.py
 │       ├── schedules.py
 │       ├── sensors.py
 │       └── utils.py
-├── .env                  # gitignored
-├── .dockerignore
+├── Datasets/               # gitignored - create manually and add input data files
+├── .env                    # gitignored - create from the template in step 8
 ├── docker-compose.yaml
 ├── Dockerfile_dagster
 ├── Dockerfile_user_code
-├── dagster.yaml          # gitignored
-├── dagster.yaml.example
+├── dagster.yaml
 ├── workspace.yaml
 ├── pyproject.toml
-├── uv.lock
 └── README.md
 ```
-- `tedisc_dagster/`: Python package containing all Dagster logic for the project
-- `__init__.py `: Marks the directory as a Python package. Required by Python but otherwise empty.
-- `definitions.py`: Entry point for Dagster. Registers all assets, jobs, schedules, sensor and rsources into a single Definitions object that Dagster reads on startup. 
-- `assets/`: Contains asset definitions grouped by data source. In Dagster, an asset represents a persistent piece of data (a file, a database table, etc.) and the code that produces it. Most of the script writing will happen within the files in this folder.
+
+- `tedisc_dagster/` - Python package containing all Dagster logic for the project.
+- `__init__.py` - Marks the directory as a Python package. Required by Python but otherwise empty.
+- `definitions.py` - Entry point for Dagster. Registers all assets, jobs, schedules, sensors, and resources into a single Definitions object that Dagster reads on startup.
+- `assets/` - Contains asset definitions grouped by data source. In Dagster, an asset represents a persistent piece of data (a file, a database table, etc.) and the code that produces it.
 - `BirdLife.py` - Assets for ingesting and processing species occurrence data from BirdLife Australia.
 - `iNaturalist.py` - Assets for ingesting and processing species occurrence data from iNaturalist.
-- `constants.py` - Stores project-wide constants such as file paths, species lists, and column names. I've chosen to store all of these here in a centralised place to make it easier to keep track of and update. 
-- `resources.py` - Configures shared resources such as database connections, API clients, or file system handles. Defining these as resources means they can be swapped out easily - for example, using a local file system in development and cloud storage in production.
-- `schedules.py` - Defines schedules that trigger jobs automatically at set times or intervals, similar to a cron job.
-- `sensors.py` - Defines sensors that trigger jobs in response to external events, such as a new file arriving in a directory or a new record appearing in a database.
-- `utils.py` - Shared helper functions used across the project (the asset files can get kinda chunky as is, so I've opted to write functions somewhere else)
-- `.env` - Stores machine-specific configuration such as file paths. Not committed to the repo - each user creates their own. See setup step 8.
-- `.dockerignore` - Tells Docker which files to exclude when building images. Prevents your local `.venv`, `.env`, and `dagster.yaml` from being copied into the image during the build process.
-- `dagster.yaml` - Tells Dagster how to store data and launch pipeline runs. Machine-specific due to differences in Docker socket paths between local and server environments. Not committed to the repo - create from `dagster.yaml.example`. See Docker setup.
-- `dagster.yaml.example` - Template for `dagster.yaml`. Committed to the repo as a reference. Copy this to `dagster.yaml` and adjust for your machine if needed.
-- `workspace.yaml` - Tells the Dagster webserver where to find your pipeline code (the user code container, on port 4004). Committed to the repo and the same across all environments.
-- `Dockerfile_dagster` - Defines the Docker image for the Dagster webserver and daemon. Installs Dagster and its dependencies.
-- `Dockerfile_user_code` - Defines the Docker image for your pipeline code. Installs all project dependencies including the Microsoft SQL Server driver.
-- `docker-compose.yaml` - Defines all four containers (PostgreSQL, webserver, daemon, user code) and how they connect to each other. This is the file you interact with to start and stop the project.
-- `pyproject.toml` - Defines the project's Python dependencies and configuration. uv reads this file to know what packages to install.
-- `uv.lock` - A snapshot of the exact versions of every dependency installed. Ensures everyone working on the project uses identical package versions. Do not edit manually.
-
-
-A lot of these files are empty/have filler code from Claude (e.g. schedules.py, sensors.py) - for now I just wanted to get the basic bones of the project defined. 
+- `constants.py` - Stores project-wide constants such as file paths, species lists, and column names.
+- `resources.py` - Configures shared resources such as database connections and API clients.
+- `schedules.py` - Defines schedules that trigger jobs automatically at set times or intervals.
+- `sensors.py` - Defines sensors that trigger jobs in response to external events.
+- `utils.py` - Shared helper functions used across the project.
+- `Datasets/` - Input data files. Not committed to the repo.
+- `.env` - Stores machine-specific configuration. Not committed to the repo.
+- `dagster.yaml` - Tells Dagster how to store run metadata and how to launch pipeline runs (via Docker). Committed to the repo. Contains two values that must be updated per machine: the Docker socket path and the project bind mount path (see Machine-specific values above).
+- `workspace.yaml` - Tells the Dagster webserver where to find the pipeline code (the user code container on port 4004).
+- `Dockerfile_dagster` - Docker image for the Dagster webserver and daemon.
+- `Dockerfile_user_code` - Docker image for the pipeline code. Installs all project dependencies including the Microsoft SQL Server ODBC driver.
+- `docker-compose.yaml` - Defines all four containers (PostgreSQL, webserver, daemon, user code) and how they connect to each other.
+- `pyproject.toml` - Minimal project metadata file.

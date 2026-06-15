@@ -30,12 +30,18 @@ services:
       DAGSTER_POSTGRES_PASSWORD: '${DAGSTER_POSTGRES_PASSWORD:-postgres_password}'
       DAGSTER_POSTGRES_DB: '${DAGSTER_POSTGRES_DB:-postgres_db}'
       DAGSTER_CURRENT_IMAGE: 'ore_user_code_image'
+    env_file:
+      - .env
     volumes:
-      - type: bind
-        source: ${USER_CODE_PATH}
-        target: /opt/dagster/app
+      - .:/opt/dagster/app
     networks:
       - ore_network
+    healthcheck:
+      test: ["CMD", "dagster", "api", "grpc-health-check", "-p", "4004"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+      start_period: 10s
 
   dagster_webserver:
     build:
@@ -61,7 +67,6 @@ services:
       DAGSTER_POSTGRES_DB: '${DAGSTER_POSTGRES_DB:-postgres_db}'
       DAGSTER_HOME: /opt/dagster/dagster_home
     volumes:
-      - ./dagster.yaml:/opt/dagster/dagster_home/dagster.yaml
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ore_dagster_storage:/opt/dagster/dagster_home/storage
       - ore_compute_logs:/opt/dagster/dagster_home/compute_logs
@@ -72,6 +77,8 @@ services:
         condition: service_healthy
       dagster_user_code:
         condition: service_healthy
+    env_file:
+      - .env
 
   dagster_daemon:
     build:
@@ -88,7 +95,6 @@ services:
       DAGSTER_POSTGRES_DB: '${DAGSTER_POSTGRES_DB:-postgres_db}'
       DAGSTER_HOME: /opt/dagster/dagster_home
     volumes:
-      - ./dagster.yaml:/opt/dagster/dagster_home/dagster.yaml
       - /var/run/docker.sock:/var/run/docker.sock
       - ore_dagster_storage:/opt/dagster/dagster_home/storage
       - ore_compute_logs:/opt/dagster/dagster_home/compute_logs
@@ -99,7 +105,9 @@ services:
         condition: service_healthy
       dagster_user_code:
         condition: service_started
-
+    env_file:
+      - .env
+      
 volumes:
   ore_postgres_data:
     driver: local

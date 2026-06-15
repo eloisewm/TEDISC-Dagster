@@ -20,15 +20,23 @@ run_launcher:
       - DAGSTER_POSTGRES_PASSWORD
       - DAGSTER_POSTGRES_DB
       - DAGSTER_HOME
+      - BLA_FILEPATH
+      - DB_HOST
+      - DB_PORT
+      - DB_NAME
+      - DB_USER
+      - DB_PASSWORD
+      - DB_DRIVER
     networks:
       - ore_network
     container_kwargs:
-      auto_remove: True
+      auto_remove: true
+      working_dir: /opt/dagster/app
       volumes:
-        - /var/run/docker.sock:/var/run/docker.sock  # local WSL - change to /run/user/380028/docker.sock on server
-        - /your/local/path/to/TEDISC-Dagster:/opt/dagster/app  # set to USER_CODE_PATH value from your .env
+        - /var/run/docker.sock:/var/run/docker.sock
         - ore_dagster_storage:/opt/dagster/dagster_home/storage
         - ore_compute_logs:/opt/dagster/dagster_home/compute_logs
+        - /home/eloisewm/Projects/TEDISC-Dagster:/opt/dagster/app
 
 run_coordinator:
   module: dagster.core.run_coordinator

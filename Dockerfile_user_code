@@ -19,19 +19,23 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml uv.lock /tmp/
-
-RUN pip install uv && \
-    cd /tmp && \
-    uv sync --frozen --no-dev
-
-ENV PATH="/tmp/.venv/bin:$PATH"
+RUN pip install \
+    dagster \
+    dagster-postgres \
+    dagster-docker \
+    dagster-webserver \
+    httpx \
+    pandas \
+    pyodbc \
+    pyinaturalist \
+    python-dotenv \
+    "dagster-mssql-bcp>=0.1.5"
 
 WORKDIR /opt/dagster/app
 
 EXPOSE 4004
 
-HEALTHCHECK --timeout=10s --start-period=3s --interval=3s --retries=20 \
+HEALTHCHECK --timeout=10s --start-period=10s --interval=5s --retries=20 \
     CMD ["dagster", "api", "grpc-health-check", "-p", "4004"]
 
 CMD ["dagster", "code-server", "start", "-h", "0.0.0.0", "-p", "4004", "-f", "tedisc_dagster/definitions.py"]
