@@ -34,8 +34,8 @@ run_launcher:
       working_dir: /opt/dagster/app
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
-        - ore_dagster_storage:/opt/dagster/dagster_home/storage
-        - ore_compute_logs:/opt/dagster/dagster_home/compute_logs
+        - tedisc-dagster_ore_dagster_storage:/opt/dagster/dagster_home/storage
+        - tedisc-dagster_ore_compute_logs:/opt/dagster/dagster_home/compute_logs
         - /home/eloisewm/Projects/TEDISC-Dagster:/opt/dagster/app
 
 run_coordinator:
