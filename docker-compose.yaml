@@ -104,7 +104,7 @@ services:
       dagster_postgresql:
         condition: service_healthy
       dagster_user_code:
-        condition: service_started
+        condition: service_healthy
     env_file:
       - .env
       
