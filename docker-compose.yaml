@@ -67,7 +67,7 @@ services:
       DAGSTER_POSTGRES_DB: '${DAGSTER_POSTGRES_DB:-postgres_db}'
       DAGSTER_HOME: /opt/dagster/dagster_home
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock:ro
       - ore_dagster_storage:/opt/dagster/dagster_home/storage
       - ore_compute_logs:/opt/dagster/dagster_home/compute_logs
     networks:
@@ -95,7 +95,7 @@ services:
       DAGSTER_POSTGRES_DB: '${DAGSTER_POSTGRES_DB:-postgres_db}'
       DAGSTER_HOME: /opt/dagster/dagster_home
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock
       - ore_dagster_storage:/opt/dagster/dagster_home/storage
       - ore_compute_logs:/opt/dagster/dagster_home/compute_logs
     networks:
