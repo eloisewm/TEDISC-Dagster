@@ -136,31 +136,26 @@ DB_NAME=IMASOREMonitoring
 DB_USER=yourusername
 DB_PASSWORD=yourpassword
 DB_DRIVER=ODBC Driver 18 for SQL Server
+
+# Only needed if your Docker socket is not at /var/run/docker.sock
+# (e.g. rootless Docker / Podman). Otherwise leave this out.
+# DOCKER_SOCK=/run/user/1000/docker.sock
 ```
 
 **Important:** `BLA_FILEPATH` must be the path as it appears *inside the Docker container*, not on your local machine. The project directory is mounted into the container at `/opt/dagster/app`, so all data files under `Datasets/` are accessible at `/opt/dagster/app/Datasets/`.
 
-### 9) Update `dagster.yaml` with your project path
-The run launcher in `dagster.yaml` needs to know the absolute path to the project on your local machine so it can mount the code into pipeline run containers. Find this line near the bottom of the `container_kwargs.volumes` section:
+### 9) (No manual `dagster.yaml` edit needed)
+`dagster.yaml` is generated automatically at container startup from `dagster.yaml.tmpl` (see [How the instance config is templated](#how-the-instance-config-is-templated)). The two per-machine values — the Docker socket path and the project path — are supplied by the environment:
 
-```yaml
-- /home/eloisewm/Projects/TEDISC-Dagster:/opt/dagster/app
-```
-
-Replace `/home/eloisewm/Projects/TEDISC-Dagster` with the absolute path to the project on your machine. You can find this by running:
-
-```bash
-pwd
-```
-
-from inside the project directory.
+- **Project path:** defaults to the directory you run `docker compose` from (`$PWD`). To override, set `WORK_DIR=/absolute/path/to/TEDISC-Dagster` in `.env`.
+- **Docker socket:** defaults to `/var/run/docker.sock`. To override, set `DOCKER_SOCK` in `.env` (see step 8).
 
 ### 10) Build and run the containers
 ```bash
 docker compose up --build
 ```
 
-The `--build` flag rebuilds the Docker images from the Dockerfiles. It is only needed the first time, or after changes to a Dockerfile or `dagster.yaml`. For subsequent starts:
+The `--build` flag rebuilds the Docker images from the Dockerfiles. It is only needed the first time, or after changes to a Dockerfile or `dagster.yaml.tmpl`. For subsequent starts:
 ```bash
 docker compose up
 ```
@@ -194,22 +189,32 @@ Note: Docker does not start automatically in WSL - you need to run `sudo service
 
 
 ## Machine-specific values
-The following values differ per machine and must be set manually. They are not committed to the repo.
+The following values differ per machine. All are set via `.env` (not committed to the repo); there is no longer any need to hand-edit `dagster.yaml`.
 
 | Value | Where to set it | Notes |
 | --- | --- | --- |
 | `BLA_FILEPATH` | `.env` | Must use the container-internal path: `/opt/dagster/app/Datasets/...` |
 | `DB_USER`, `DB_PASSWORD` | `.env` | Your personal database credentials |
-| Project bind mount path | `dagster.yaml` under `container_kwargs.volumes` | Absolute path to the project root on your local machine |
-| Docker socket path | `dagster.yaml` and `docker-compose.yaml` | See Server Deployment below |
+| Project bind mount path | `.env` → `WORK_DIR` (optional) | Defaults to `$PWD`; only set if you run compose from elsewhere |
+| Docker socket path | `.env` → `DOCKER_SOCK` (optional) | Defaults to `/var/run/docker.sock`; see Server Deployment below |
+
+
+## How the instance config is templated
+Dagster's `dagster.yaml` does **not** support shell-style `${VAR}` substitution — only the `env:` key form (used for the Postgres credentials). To keep the per-machine values (Docker socket path, project path) out of the committed file, `dagster.yaml` is generated at container startup:
+
+- `dagster.yaml.tmpl` is the committed template, with `${DOCKER_SOCK}` and `${WORK_DIR}` placeholders.
+- The `Dockerfile_dagster` image runs `entrypoint.sh`, which uses `envsubst` to render `dagster.yaml.tmpl` → `dagster.yaml` (substituting only those two variables) before launching the webserver/daemon.
+- The compose project name is pinned to `tedisc-dagster` (top-level `name:`), so the named volumes are always `tedisc-dagster_*` and the template can reference them by their full name.
+
+To change the launcher config, edit `dagster.yaml.tmpl` and rebuild (`docker compose up --build`).
 
 
 ## Server Deployment
-The server (`dagster-dev.its.utas.edu.au`) uses rootless Docker, which means the Docker socket is at a different path than on a standard Linux machine. This affects the volume mounts in `dagster.yaml` and `docker-compose.yaml`.
+The server (`dagster-dev.its.utas.edu.au`) uses rootless Docker, which means the Docker socket is at a different path than on a standard Linux machine.
 
-On the server, the Docker socket path is `/run/user/<uid>/docker.sock` rather than `/var/run/docker.sock`. Search for all occurrences of `/var/run/docker.sock` in both files and replace with the correct path. Contact admin for the correct UID and any credential setup required.
+On the server, the Docker socket path is `/run/user/<uid>/docker.sock` rather than `/var/run/docker.sock`. Set `DOCKER_SOCK=/run/user/<uid>/docker.sock` in `.env` — this flows into both `docker-compose.yaml` and the templated `dagster.yaml`. Contact admin for the correct UID and any credential setup required.
 
-The project bind mount path in `dagster.yaml` will also need to be updated to reflect the server's directory structure.
+The project path is taken from `$PWD` (or `WORK_DIR` in `.env`), so no manual path edits are needed on the server.
 
 
 ## Project Structure
@@ -234,7 +239,8 @@ TEDISC-Dagster/
 ├── docker-compose.yaml
 ├── Dockerfile_dagster
 ├── Dockerfile_user_code
-├── dagster.yaml
+├── dagster.yaml.tmpl       # template; rendered to dagster.yaml at container startup
+├── entrypoint.sh           # renders dagster.yaml.tmpl via envsubst, then starts Dagster
 ├── workspace.yaml
 ├── pyproject.toml
 └── README.md
@@ -253,7 +259,8 @@ TEDISC-Dagster/
 - `utils.py` - Shared helper functions used across the project.
 - `Datasets/` - Input data files. Not committed to the repo.
 - `.env` - Stores machine-specific configuration. Not committed to the repo.
-- `dagster.yaml` - Tells Dagster how to store run metadata and how to launch pipeline runs (via Docker). Committed to the repo. Contains two values that must be updated per machine: the Docker socket path and the project bind mount path (see Machine-specific values above).
+- `dagster.yaml.tmpl` - Template for Dagster's instance config (how to store run metadata and launch pipeline runs via Docker). Committed to the repo. Rendered to `dagster.yaml` inside the container at startup by `entrypoint.sh`, substituting the Docker socket path and project path from the environment (see [How the instance config is templated](#how-the-instance-config-is-templated)).
+- `entrypoint.sh` - Container entrypoint for the webserver/daemon image; runs `envsubst` on `dagster.yaml.tmpl` then execs the Dagster process.
 - `workspace.yaml` - Tells the Dagster webserver where to find the pipeline code (the user code container on port 4004).
 - `Dockerfile_dagster` - Docker image for the Dagster webserver and daemon.
 - `Dockerfile_user_code` - Docker image for the pipeline code. Installs all project dependencies including the Microsoft SQL Server ODBC driver.

@@ -1,3 +1,8 @@
+# Pin the project name so named volumes are deterministically `tedisc-dagster_*`
+# for every developer regardless of checkout directory. dagster.yaml.tmpl
+# references these volumes by their full prefixed name.
+name: tedisc-dagster
+
 services:
 
   dagster_postgresql:
@@ -49,7 +54,9 @@ services:
       dockerfile: ./Dockerfile_dagster
     container_name: ore_webserver
     restart: unless-stopped
-    entrypoint:
+    # `command:` (not `entrypoint:`) so the image ENTRYPOINT (/entrypoint.sh,
+    # which renders dagster.yaml via envsubst) runs first, then execs this.
+    command:
       - dagster-webserver
       - -h
       - '0.0.0.0'
@@ -66,6 +73,8 @@ services:
       DAGSTER_POSTGRES_PASSWORD: '${DAGSTER_POSTGRES_PASSWORD:-postgres_password}'
       DAGSTER_POSTGRES_DB: '${DAGSTER_POSTGRES_DB:-postgres_db}'
       DAGSTER_HOME: /opt/dagster/dagster_home
+      DOCKER_SOCK: '${DOCKER_SOCK:-/var/run/docker.sock}'
+      WORK_DIR: '${WORK_DIR:-$PWD}'
     volumes:
       - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock:ro
       - ore_dagster_storage:/opt/dagster/dagster_home/storage
@@ -86,7 +95,9 @@ services:
       dockerfile: ./Dockerfile_dagster
     container_name: ore_daemon
     restart: unless-stopped
-    entrypoint:
+    # `command:` (not `entrypoint:`) so the image ENTRYPOINT (/entrypoint.sh,
+    # which renders dagster.yaml via envsubst) runs first, then execs this.
+    command:
       - dagster-daemon
       - run
     environment:
@@ -94,6 +105,8 @@ services:
       DAGSTER_POSTGRES_PASSWORD: '${DAGSTER_POSTGRES_PASSWORD:-postgres_password}'
       DAGSTER_POSTGRES_DB: '${DAGSTER_POSTGRES_DB:-postgres_db}'
       DAGSTER_HOME: /opt/dagster/dagster_home
+      DOCKER_SOCK: '${DOCKER_SOCK:-/var/run/docker.sock}'
+      WORK_DIR: '${WORK_DIR:-$PWD}'
     volumes:
       - ${DOCKER_SOCK:-/var/run/docker.sock}:/var/run/docker.sock
       - ore_dagster_storage:/opt/dagster/dagster_home/storage

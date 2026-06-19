@@ -7,10 +7,19 @@ RUN pip install \
     dagster-postgres \
     dagster-docker
 
+# gettext-base provides `envsubst`, used by entrypoint.sh to render dagster.yaml
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends gettext-base \
+    && rm -rf /var/lib/apt/lists/*
+
 ENV DAGSTER_HOME=/opt/dagster/dagster_home/
 
 RUN mkdir -p $DAGSTER_HOME
 
-COPY dagster.yaml workspace.yaml $DAGSTER_HOME
+COPY dagster.yaml.tmpl workspace.yaml $DAGSTER_HOME
+COPY entrypoint.sh /entrypoint.sh
 
 WORKDIR $DAGSTER_HOME
+
+# entrypoint.sh renders dagster.yaml from the template, then execs the compose `command:`
+ENTRYPOINT ["/entrypoint.sh"]

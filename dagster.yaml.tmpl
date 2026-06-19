@@ -32,11 +32,14 @@ run_launcher:
     container_kwargs:
       auto_remove: true
       working_dir: /opt/dagster/app
+      # NOTE: this file is a template. The ${...} placeholders are substituted
+      # at container startup by /entrypoint.sh (envsubst) into dagster.yaml.
+      # Dagster itself does NOT expand ${VAR}; only the `env:` key form below.
       volumes:
-        - /var/run/docker.sock:/var/run/docker.sock
+        - ${DOCKER_SOCK}:/var/run/docker.sock
         - tedisc-dagster_ore_dagster_storage:/opt/dagster/dagster_home/storage
         - tedisc-dagster_ore_compute_logs:/opt/dagster/dagster_home/compute_logs
-        - /home/eloisewm/Projects/TEDISC-Dagster:/opt/dagster/app
+        - ${WORK_DIR}:/opt/dagster/app
 
 run_coordinator:
   module: dagster.core.run_coordinator
