@@ -1,0 +1,19 @@
+[Unit]
+Description=TEDISC Dagster docker-compose stack
+# Wait for the user's container runtime socket (rootless podman/docker) to be
+# ready before trying to talk to it.
+After=default.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+# Adjust to wherever the repo is checked out.
+WorkingDirectory=%h/TEDISC-Dagster
+ExecStart=/usr/bin/docker compose up -d --wait --wait-timeout 300
+ExecStop=/usr/bin/docker compose down
+ExecReload=/usr/bin/docker compose up -d --wait --wait-timeout 300
+TimeoutStartSec=15min
+TimeoutStopSec=5min
+
+[Install]
+WantedBy=default.target

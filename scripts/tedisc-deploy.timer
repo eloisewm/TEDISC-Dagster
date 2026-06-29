@@ -1,0 +1,15 @@
+[Unit]
+Description=Nightly TEDISC Dagster deploy check
+Requires=tedisc-deploy.service
+
+[Timer]
+OnCalendar=*-*-* 03:00:00
+# Spread load if multiple boxes ever share this timer; also avoids hitting
+# upstream package mirrors at exactly the same instant each night.
+RandomizedDelaySec=30min
+# Catch up on a missed run if the box was off at 03:00.
+Persistent=true
+Unit=tedisc-deploy.service
+
+[Install]
+WantedBy=timers.target

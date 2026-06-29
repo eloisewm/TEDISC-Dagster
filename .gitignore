@@ -5,6 +5,7 @@ __pycache__/
 Random scripts/
 .env
 Datasets/
+backups/
 
 /mise.local.toml
 
