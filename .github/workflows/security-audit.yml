@@ -17,6 +17,8 @@ on:
       - .github/workflows/*.yml
   workflow_dispatch:
 
+permissions: {}
+
 jobs:
   zizmor:
     name: zizmor
@@ -32,14 +34,7 @@ jobs:
         uses: zizmorcore/zizmor-action@192e21d79ab29983730a13d1382995c2307fbcaa # v0.5.7
         id: sarif
         with:
-          advanced-security: true
-
-      - name: Upload SARIF to GitHub
-        if: ${{ !cancelled() }}
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: ${{ steps.sarif.outputs.output-file }}
-          category: zizmor
+          advanced-security: false
 
   pip-audit:
     name: pip-audit
