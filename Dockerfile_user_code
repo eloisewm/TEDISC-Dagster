@@ -21,15 +21,14 @@ RUN apt-get update && apt-get install -y \
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
+COPY pyproject.toml uv.lock /tmp/
+
+RUN cd /tmp && \
+    uv sync --frozen --no-dev
+
+ENV PATH="/tmp/.venv/bin:$PATH"
+
 WORKDIR /opt/dagster/app
-
-# Install dependencies (pyproject.toml + uv.lock) first for better caching
-COPY pyproject.toml uv.lock ./
-RUN uv sync --frozen --no-dev --system --no-install-project
-
-# Then copy application code and install the project package
-COPY . .
-RUN uv sync --frozen --no-dev --system
 
 EXPOSE 4004
 
