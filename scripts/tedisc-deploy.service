@@ -1,0 +1,17 @@
+[Unit]
+Description=Pull and rebuild TEDISC Dagster stack
+Requires=tedisc.service
+After=tedisc.service
+
+[Service]
+Type=oneshot
+# Adjust to wherever the repo is checked out.
+WorkingDirectory=%h/TEDISC-Dagster
+ExecStart=%h/TEDISC-Dagster/scripts/deploy-update.sh
+StandardOutput=journal
+StandardError=journal
+# Generous timeout — first build after a base-image bump can be slow.
+TimeoutStartSec=30min
+
+[Install]
+WantedBy=default.target
