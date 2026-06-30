@@ -13,7 +13,10 @@ from tedisc_dagster.defs.utils import create_absence_records, assign_data_type
 # ───────────────────────────────────────────────────────────────────────────────────────────────────
 
 load_dotenv()
-filepath = os.environ.get("BLA_FILEPATH")
+
+# Explode if envvars aren't set:
+data_dir = Path( os.environ["APP_DATA_DIR"] )
+filepath = data_dir / os.environ["BLA_FILEPATH"]
 
 @asset(
         group_name = "BirdLife_Australia", 

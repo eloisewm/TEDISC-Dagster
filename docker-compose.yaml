@@ -35,10 +35,13 @@ services:
       DAGSTER_POSTGRES_PASSWORD: '${DAGSTER_POSTGRES_PASSWORD:-postgres_password}'
       DAGSTER_POSTGRES_DB: '${DAGSTER_POSTGRES_DB:-postgres_db}'
       DAGSTER_CURRENT_IMAGE: 'ore_user_code_image'
+      APP_DATA_DIR: /opt/dagster/data
     env_file:
       - .env
     volumes:
       - .:/opt/dagster/app
+      # For confidentiality reasons the data directory is outside the application directory:
+      - ${USER_DATA_DIR:-../ore-datasets}:/opt/dagster/data
     networks:
       - ore_network
     healthcheck:

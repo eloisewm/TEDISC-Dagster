@@ -193,10 +193,11 @@ The following values differ per machine. All are set via `.env` (not committed t
 
 | Value | Where to set it | Notes |
 | --- | --- | --- |
-| `BLA_FILEPATH` | `.env` | Must use the container-internal path: `/opt/dagster/app/Datasets/...` |
+| `BLA_FILEPATH` | `.env` | Must be relative to the container-internal path: `/opt/dagster/data/...` |
 | `DB_USER`, `DB_PASSWORD` | `.env` | Your personal database credentials |
 | Project bind mount path | `.env` → `WORK_DIR` (optional) | Defaults to `$PWD`; only set if you run compose from elsewhere |
 | Docker socket path | `.env` → `DOCKER_SOCK` (optional) | Defaults to `/var/run/docker.sock`; see Server Deployment below |
+| `USER_DATA_DIR` | `.env` | Root directory for datasets; defaults to `../ore-datasets` |
 
 
 ## How the instance config is templated
