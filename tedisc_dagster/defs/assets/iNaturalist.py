@@ -7,68 +7,89 @@ from pathlib import Path
 from datetime import datetime, date
 from pyinaturalist import get_observations
 
-# ───────────────────────────────────────────────────────────────────────────────────────────────────
-# iNaturalist
-# ───────────────────────────────────────────────────────────────────────────────────────────────────
-
 # Currently I run out of memory before this asset can execute
 # Will need to either:
 #   1) Save each species to disk as I go through them in the loop
 #   2) Write an asset for each individual species 
 # Decision will impact how I write future assets - must decide before moving on
-@asset(group_name="iNaturalist")
+import os
+import pandas as pd
+from pyinaturalist import get_observations
+
+from dagster import asset, AssetExecutionContext, MetadataValue
+
+from tedisc_dagster.defs import constants
+
+
+@asset(
+    group_name="iNaturalist",
+    description="Raw research-grade observations fetched from the iNaturalist API for all target species, covering the Southern Hemisphere.",
+)
 def raw_obs_inat(context: AssetExecutionContext) -> pd.DataFrame:
 
-#     all_observations = []
+    output_dir = "inat_raw"
+    os.makedirs(output_dir, exist_ok=True)
 
-#     for taxon_name in constants.ALL_TARGET_SPECIES_SCIENTIFIC:
+    species_record_counts = {}
 
-#         # Count the number of obs that we are about to request
-#         count_response = get_observations(
-#             taxon_name=taxon_name,
-#             quality_grade="research",
-#             count_only=True, 
-#             nelat=0,     
-#             swlat=-90,    
-#             nelng=180,    
-#             swlng=-180,
-#         )
-#         total = count_response["total_results"]
-#         context.log.info(f"[{taxon_name}] Total observations to download: {total}")
+    for taxon_name in constants.ALL_TARGET_SPECIES_SCIENTIFIC:
 
-#         page = 1        # Will iterate in the loop over all possible pages
-#         per_page = 200  # Max we can do
+        count_response = get_observations(
+            taxon_name=taxon_name,
+            quality_grade="research",
+            count_only=True,
+            nelat=0,
+            swlat=-90,
+            nelng=180,
+            swlng=-180,
+        )
+        total = count_response["total_results"]
+        context.log.info(f"[{taxon_name}] Total observations to download: {total}")
 
-#         while True:
-#             # API pull for all reasearch grade observations in the southern hemiphere
-#             response = get_observations(
-#                 taxon_name=taxon_name,
-#                 quality_grade="research",
-#                 per_page=per_page,
-#                 page=page,
-#                 nelat=0,      
-#                 swlat=-90,    
-#                 nelng=180,   
-#                 swlng=-180,
-#             )
+        page = 1
+        per_page = 200
+        observations = []
 
-#             results = response["results"]
-#             if not results:
-#                 break
+        while True:
+            response = get_observations(
+                taxon_name=taxon_name,
+                quality_grade="research",
+                per_page=per_page,
+                page=page,
+                nelat=0,
+                swlat=-90,
+                nelng=180,
+                swlng=-180,
+            )
 
-#             all_observations.extend(results)
-#             context.log.info(f"[{taxon_name}] Page {page} - {len(all_observations)} total records so far")
-#             page += 1
+            results = response["results"]
+            if not results:
+                break
 
-#     df = pd.json_normalize(all_observations)
+            observations.extend(results)
+            context.log.info(f"[{taxon_name}] Page {page} - {len(observations)} records so far")
+            page += 1
 
-#     context.add_output_metadata({
-#         "row_count": len(df),
-#         "column_count": len(df.columns),
-#         "species_count": len(constants.ALL_TARGET_SPECIES_SCIENTIFIC),
-#         "quality_grade": "research",
-#     })
+        df = pd.json_normalize(observations)
+        safe_name = taxon_name.replace(" ", "_")
+        df.to_csv(f"{output_dir}/{safe_name}.csv", index=False)
+        context.log.info(f"[{taxon_name}] Saved {len(df)} rows to {output_dir}/{safe_name}.csv")
 
-#     return df
-    
-    return None
+        species_record_counts[taxon_name] = len(df)
+
+    # Read all CSV files back and concatenate
+    files = [f"{output_dir}/{f}" for f in os.listdir(output_dir) if f.endswith(".csv")]
+    df_all = pd.concat([pd.read_csv(f) for f in files], ignore_index=True)
+
+    total_rows = len(df_all)
+    context.log.info(f"Total rows across all species: {total_rows}")
+
+    context.add_output_metadata({
+        "row_count": MetadataValue.int(total_rows),
+        "column_count": MetadataValue.int(len(df_all.columns)),
+        "species_count": MetadataValue.int(len(species_record_counts)),
+        "records_per_species": MetadataValue.json(species_record_counts),
+        "preview": MetadataValue.md(df_all.head(5).to_markdown()),
+    })
+
+    return df_all

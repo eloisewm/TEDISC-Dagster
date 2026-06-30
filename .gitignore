@@ -5,6 +5,7 @@ __pycache__/
 Random scripts/
 .env
 Datasets/
+inat_raw/
 backups/
 
 /mise.local.toml
@@ -12,3 +13,4 @@ backups/
 # Generated at container startup from dagster.yaml.tmpl (see entrypoint.sh).
 # A local copy may also appear if you render the template by hand.
 /dagster.yaml
+

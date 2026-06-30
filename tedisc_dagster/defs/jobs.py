@@ -1,10 +1,19 @@
 from dagster import AssetSelection, define_asset_job
 
-# This job runs both assets in order: wfs_inventory first, then save_features.
-# AssetSelection.all() grabs every asset registered in definitions.py.
-# You could also be specific: AssetSelection.keys("wfs_inventory", "save_features")
+birdlife_job = define_asset_job(
+    name="birdlife_job",
+    selection=AssetSelection.assets(
+        "raw_obs_bla", 
+        "validated_structure_bla", 
+        "deduplicated_bla", 
+        "flagged_data_bla", 
+        "typed_bla", 
+        "padded_bla", 
+        "exported_bla"
+        ),
+)
 
-inventory_job = define_asset_job(
-    name="inventory_job",
-    selection=AssetSelection.all(),
+inat_job = define_asset_job(
+    name="inat_job",
+    selection=AssetSelection.assets("raw_obs_inat"),
 )

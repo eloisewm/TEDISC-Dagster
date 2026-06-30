@@ -2,34 +2,38 @@
 ################## GENERAL #####################
 
 ALL_TARGET_SPECIES_COMMON = [
-    "Curlew Sandpiper",
-    "Red Knot",
-    "Far Eastern Curlew",
-    "Lesser Sand Plover",
+    "Amsterdam Albatross",
     "Grey-Headed Albatross",
     "Northern Royal Albatross",
-    "Orange-bellied Parrot",
     "Shy Albatross",
     "Southern Giant-Petrel",
-    "Swift Parrot",
+    "Gould's Petrel",
     "White-capped Albatross",
+    "Curlew Sandpiper",
+    "Far Eastern Curlew",
+    "Lesser Sand Plover",
+    "Red Knot",
+    "Orange-bellied Parrot",
+    "Swift Parrot",
     "Humpback Whale",
     "Southern Right Whale",
     "Blue Whale"
 ]
 
 ALL_TARGET_SPECIES_SCIENTIFIC = [
-    "Calidris ferruginea",        # Curlew Sandpiper
-    "Calidris canutus",           # Red Knot
-    "Numenius madagascariensis",  # Far Eastern Curlew
-    "Anarhynchus mongolus",       # Lesser Sand Plover
+    "Diomedea amsterdamensis",    # Amsterdam Albatross
     "Thalassarche chrysostoma",   # Grey-headed Albatross
     "Diomedea sanfordi",          # Northern Royal Albatross
-    "Neophema chrysogaster",      # Orange-bellied Parrot
     "Thalassarche cauta",         # Shy Albatross
     "Macronectes giganteus",      # Southern Giant-Petrel
-    "Lathamus discolor",          # Swift Parrot
+    "Pterodroma leucoptera",      # Gould's Petrel
     "Thalassarche steadi",        # White-capped Albatross
+    "Calidris ferruginea",        # Curlew Sandpiper
+    "Numenius madagascariensis",  # Far Eastern Curlew
+    "Charadrius mongolus",        # Lesser Sand Plover
+    "Calidris canutus",           # Red Knot
+    "Neophema chrysogaster",      # Orange-bellied Parrot
+    "Lathamus discolor",          # Swift Parrot
     "Megaptera novaeangliae",     # Humpback Whale
     "Eubalaena australis",        # Southern Right Whale
     "Balaenoptera musculus",      # Blue Whale
@@ -259,3 +263,8 @@ BLA_ASSET_SCHEMA = [
     {"name": "disturbance_vehicles_count",             "type": "FLOAT"},
     {"name": "disturbance_other_count",                "type": "FLOAT"},
 ]
+
+
+
+
+############# iNaturalist ################
