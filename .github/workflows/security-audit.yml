@@ -29,16 +29,16 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Run zizmor
-        uses: woodruffw/zizmor@v1
+        uses: zizmorcore/zizmor-action@192e21d79ab29983730a13d1382995c2307fbcaa # v0.5.7
+        id: sarif
         with:
-          sarif: true
-          format: sarif
+          advanced-security: true
 
       - name: Upload SARIF to GitHub
         if: ${{ !cancelled() }}
         uses: github/codeql-action/upload-sarif@v3
         with:
-          sarif_file: results.sarif
+          sarif_file: ${{ steps.sarif.outputs.output-file }}
           category: zizmor
 
   pip-audit:
