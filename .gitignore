@@ -5,4 +5,4 @@ __pycache__/
 Random scripts/
 .env
 Datasets/
-
+inat_raw/
