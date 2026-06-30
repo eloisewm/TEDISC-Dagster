@@ -19,19 +19,17 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install \
-    dagster \
-    dagster-postgres \
-    dagster-docker \
-    dagster-webserver \
-    httpx \
-    pandas \
-    pyodbc \
-    pyinaturalist \
-    python-dotenv \
-    "dagster-mssql-bcp>=0.1.5"
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
 WORKDIR /opt/dagster/app
+
+# Install dependencies (pyproject.toml + uv.lock) first for better caching
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev --system --no-install-project
+
+# Then copy application code and install the project package
+COPY . .
+RUN uv sync --frozen --no-dev --system
 
 EXPOSE 4004
 

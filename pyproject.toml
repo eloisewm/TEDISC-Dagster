@@ -4,6 +4,19 @@ version = "0.1.0"
 description = "Dagster deployment for the TEDISC project"
 readme = "README.md"
 requires-python = ">=3.12"
+dependencies = [
+    "dagster",
+    "dagster-docker",
+    "dagster-graphql",
+    "dagster-mssql-bcp>=0.1.5",
+    "dagster-postgres",
+    "dagster-webserver",
+    "httpx",
+    "pandas",
+    "pyinaturalist",
+    "pyodbc",
+    "python-dotenv",
+]
 
 [tool.dagster]
 module_name = "tedisc_dagster"
